@@ -164,7 +164,6 @@ private:
   bool vtscEnabled;
 
   double currentAcceleration;
-  double desiredAcceleration;
 
   float accelerationConversion;
   float dashboardSpeedLimit;

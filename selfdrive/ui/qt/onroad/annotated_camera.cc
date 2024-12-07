@@ -1063,7 +1063,6 @@ void AnnotatedCameraWidget::updateFrogPilotVariables(int alert_height, const UIS
   showConditionalExperimentalStatusBar = scene.cem_status_bar;
 
   currentAcceleration = scene.acceleration;
-  desiredAcceleration = scene.desired_acceleration;
 
   desiredFollow = scene.desired_follow;
   stoppedEquivalence = scene.stopped_equivalence;
@@ -1287,7 +1286,6 @@ void AnnotatedCameraWidget::drawLeadInfo(QPainter &p) {
   constexpr int maxAccelDuration = 5000;
 
   double acceleration = std::round(currentAcceleration * 100) / 100;
-  double targetAcceleration = = std::round(desiredAcceleration * 100) / 100;
 
   auto resetTimer = [&]() {
     timer.start();
@@ -1307,10 +1305,6 @@ void AnnotatedCameraWidget::drawLeadInfo(QPainter &p) {
 
   QString accelText = QString(tr("Accel: %1%2"))
                       .arg(acceleration * accelerationConversion, 0, 'f', 2)
-                      .arg(accelerationUnit);
-
-  QString accelText = QString(tr("T-Accel: %1%2"))
-                      .arg(targetAcceleration * accelerationConversion, 0, 'f', 2)
                       .arg(accelerationUnit);
 
   QString maxAccSuffix;
@@ -1368,7 +1362,6 @@ PedalIcons::PedalIcons(QWidget *parent) : QWidget(parent) {
 
 void PedalIcons::updateState(const UIScene &scene) {
   acceleration = scene.acceleration;
-  desiredAcceleration = scene.desiredAcceleration;
   brakeLightOn = scene.brake_lights_on;
   dynamicPedals = scene.dynamic_pedals_on_ui;
   standstill = scene.standstill;
