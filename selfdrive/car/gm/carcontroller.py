@@ -62,7 +62,7 @@ class CarController(CarControllerBase):
     if not long_active: return 0., False
     press_regen_paddle = False
 
-    if accel < -0.15:
+    if accel < -0.30:
       press_regen_paddle = True
       pedal_gas = 0
     else:
