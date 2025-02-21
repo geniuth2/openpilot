@@ -9,7 +9,7 @@ FrogPilotLongitudinalPanel::FrogPilotLongitudinalPanel(FrogPilotSettingsWindow *
     {"CENavigation", tr("Navigation Data"), tr("Triggers 'Experimental Mode' based on navigation data, such as upcoming intersections or turns."), ""},
     {"CEModelStopTime", tr("openpilot Wants to Stop In"), tr("Triggers 'Experimental Mode' when openpilot wants to stop such as for a stop sign or red light."), ""},
     {"CESignalSpeed", tr("Turn Signal Below"), tr("Triggers 'Experimental Mode' when using turn signals below the set speed."), ""},
-    {"HideCEMStatusBar", tr("Hide the Status Bar"), tr("Hides status bar for 'Conditional Experimental Mode'."), ""},
+    {"ShowCEMStatus", tr("Status Widget"), tr("Show the current status in the onroad UI."), ""},
 
     {"CurveSpeedControl", tr("Curve Speed Control"), tr("Automatically slow down for curves detected ahead or through the downloaded maps."), "../frogpilot/assets/toggle_icons/icon_speed_map.png"},
     {"CurveDetectionMethod", tr("Curve Detection Method"), tr("Uses data from either the downloaded maps or the model to determine where curves are."), ""},
@@ -67,11 +67,11 @@ FrogPilotLongitudinalPanel::FrogPilotLongitudinalPanel(FrogPilotSettingsWindow *
     {"HumanFollowing", tr("Human-Like Approach Behind Leads"), tr("Dynamically adjusts the following distance when approaching slower or stopped vehicles for a more 'human-like' driving experience."), ""},
     {"LeadDetectionThreshold", tr("Lead Detection Confidence"), tr("Controls how sensitive openpilot is to detecting vehicles ahead. A lower value can help detect vehicles sooner and from farther away, but increases the chance openpilot mistakes other objects for vehicles."), ""},
     {"MaxDesiredAcceleration", tr("Maximum Acceleration Rate"), tr("Sets a cap on how fast openpilot can accelerate."), ""},
-    {"TacoTune", tr("'Taco Bell Run' Turn Speed Hack"), tr("Uses comma's speed hack they used to help handle left and right turns more precisely during their 2022 'Taco Bell' drive by reducing the maximum allowed speed and acceleration while turning."), ""},
+    {"TacoTune", tr("'Taco Bell Run' Turn Speed Hack"), tr("Enable comma's speed hack they used to help handle left and right turns more precisely during their 2022 'Taco Bell' drive by reducing the maximum allowed speed and acceleration while turning."), ""},
 
     {"QOLLongitudinal", tr("Quality of Life Improvements"), tr("Miscellaneous longitudinal focused features to improve your overall openpilot experience."), "../frogpilot/assets/toggle_icons/quality_of_life.png"},
-    {"CustomCruise", tr("Cruise Increase Interval"), tr("Controls the interval used when increasing the cruise control speed."), ""},
-    {"CustomCruiseLong", tr("Custom Cruise Interval (Long Press)"), tr("Controls the interval used when increasing the cruise control speed while holding down the button for 0.5+ seconds."), ""},
+    {"CustomCruise", tr("Cruise Increase"), tr("Controls the interval used when increasing the cruise control speed."), ""},
+    {"CustomCruiseLong", tr("Cruise Increase (Long Press)"), tr("Controls the interval used when increasing the cruise control speed while holding down the button for 0.5+ seconds."), ""},
     {"ForceStandstill", tr("Force Keep openpilot in the Standstill State"), tr("Keeps openpilot in the 'standstill' state until the gas pedal or 'resume' button is pressed."), ""},
     {"ForceStops", tr("Force Stop for 'Detected' Stop Lights/Signs"), tr("Forces a stop whenever openpilot 'detects' a potential red light/stop sign to prevent it from running the red light/stop sign."), ""},
     {"IncreasedStoppedDistance", tr("Increase Stopped Distance"), tr("Increases the distance to stop behind vehicles."), ""},
@@ -80,10 +80,10 @@ FrogPilotLongitudinalPanel::FrogPilotLongitudinalPanel(FrogPilotSettingsWindow *
     {"ReverseCruise", tr("Reverse Cruise Increase"), tr("Reverses the long press cruise increase feature to increase the max speed by 5 mph instead of 1 on short presses."), ""},
 
     {"SpeedLimitController", tr("Speed Limit Controller"), tr("Automatically adjust your max speed to match the speed limit using downloaded 'Open Street Maps' data, 'Navigate on openpilot', or your car's dashboard (Toyota/Lexus/HKG only)."), "../assets/offroad/icon_speed_limit.png"},
-    {"SLCConfirmation", tr("Confirm New Speed Limits"), tr("Enables manual confirmations before using a new speed limit."), ""},
     {"SLCFallback", tr("Fallback Method"), tr("Controls what happens when no speed limit data is available."), ""},
     {"SLCOverride", tr("Override Method"), tr("Controls how the current speed limit is overriden.\n\n"), ""},
     {"SLCQOL", tr("Quality of Life Improvements"), tr("Miscellaneous 'Speed Limit Controller' focused features to improve your overall openpilot experience."), ""},
+    {"SLCConfirmation", tr("Confirm New Speed Limits"), tr("Enables manual confirmations before using a new speed limit."), ""},
     {"ForceMPHDashboard", tr("Force MPH Readings from Dashboard"), tr("Forces speed limit readings from the dashboard to MPH if it normally displays them in KPH."), ""},
     {"SLCLookaheadHigher", tr("Prepare for Higher Speed Limits"), tr("Sets a lookahead value to prepare for upcoming higher speed limits when using downloaded map data."), ""},
     {"SLCLookaheadLower", tr("Prepare for Lower Speed Limits"), tr("Sets a lookahead value to prepare for upcoming lower speed limits when using downloaded map data."), ""},
@@ -94,6 +94,8 @@ FrogPilotLongitudinalPanel::FrogPilotLongitudinalPanel(FrogPilotSettingsWindow *
     {"Offset2", tr("Speed Limit Offset (35-54 mph)"), tr("Sets the speed limit offset for speeds between 35 and 54 mph."), ""},
     {"Offset3", tr("Speed Limit Offset (55-64 mph)"), tr("Sets the speed limit offset for speeds between 55 and 64 mph."), ""},
     {"Offset4", tr("Speed Limit Offset (65-99 mph)"), tr("Sets the speed limit offset for speeds between 65 and 99 mph."), ""},
+    {"SLCVisuals", tr("Visuals"), tr("Visual 'Speed Limit Controller' features to improve your overall openpilot experience."), ""},
+    {"ShowSLCOffset", tr("Show Speed Limit Offset"), tr("Displays the speed limit offset separately in the onroad UI when using 'Speed Limit Controller'."), ""},
     {"SpeedLimitSources", tr("Show Speed Limit Sources"), tr("Displays the speed limit sources in the onroad UI when using 'Speed Limit Controller'."), ""},
   };
 
@@ -101,41 +103,41 @@ FrogPilotLongitudinalPanel::FrogPilotLongitudinalPanel(FrogPilotSettingsWindow *
     AbstractControl *longitudinalToggle;
 
     if (param == "CustomPersonalities") {
-      FrogPilotParamManageControl *customPersonalitiesToggle = new FrogPilotParamManageControl(param, title, desc, icon);
-      QObject::connect(customPersonalitiesToggle, &FrogPilotParamManageControl::manageButtonClicked, [this]() {
+      FrogPilotManageControl *customPersonalitiesToggle = new FrogPilotManageControl(param, title, desc, icon);
+      QObject::connect(customPersonalitiesToggle, &FrogPilotManageControl::manageButtonClicked, [this]() {
         showToggles(customDrivingPersonalityKeys);
       });
       longitudinalToggle = customPersonalitiesToggle;
     } else if (param == "ResetTrafficPersonality" || param == "ResetAggressivePersonality" || param == "ResetStandardPersonality" || param == "ResetRelaxedPersonality") {
-      FrogPilotButtonsControl *profileBtn = new FrogPilotButtonsControl(title, desc, {tr("Reset")});
-      longitudinalToggle = profileBtn;
+      ButtonControl *resetBtn = new ButtonControl(title, tr("RESET"), desc);
+      longitudinalToggle = resetBtn;
     } else if (param == "TrafficPersonalityProfile") {
-      FrogPilotParamManageControl *trafficPersonalityToggle = new FrogPilotParamManageControl(param, title, desc, icon);
-      QObject::connect(trafficPersonalityToggle, &FrogPilotParamManageControl::manageButtonClicked, [this]() {
+      FrogPilotManageControl *trafficPersonalityToggle = new FrogPilotManageControl(param, title, desc, icon);
+      QObject::connect(trafficPersonalityToggle, &FrogPilotManageControl::manageButtonClicked, [this]() {
         customPersonalityOpen = true;
         openSubParentToggle();
         showToggles(trafficPersonalityKeys);
       });
       longitudinalToggle = trafficPersonalityToggle;
     } else if (param == "AggressivePersonalityProfile") {
-      FrogPilotParamManageControl *aggressivePersonalityToggle = new FrogPilotParamManageControl(param, title, desc, icon);
-      QObject::connect(aggressivePersonalityToggle, &FrogPilotParamManageControl::manageButtonClicked, [this]() {
+      FrogPilotManageControl *aggressivePersonalityToggle = new FrogPilotManageControl(param, title, desc, icon);
+      QObject::connect(aggressivePersonalityToggle, &FrogPilotManageControl::manageButtonClicked, [this]() {
         customPersonalityOpen = true;
         openSubParentToggle();
         showToggles(aggressivePersonalityKeys);
       });
       longitudinalToggle = aggressivePersonalityToggle;
     } else if (param == "StandardPersonalityProfile") {
-      FrogPilotParamManageControl *standardPersonalityToggle = new FrogPilotParamManageControl(param, title, desc, icon);
-      QObject::connect(standardPersonalityToggle, &FrogPilotParamManageControl::manageButtonClicked, [this]() {
+      FrogPilotManageControl *standardPersonalityToggle = new FrogPilotManageControl(param, title, desc, icon);
+      QObject::connect(standardPersonalityToggle, &FrogPilotManageControl::manageButtonClicked, [this]() {
         customPersonalityOpen = true;
         openSubParentToggle();
         showToggles(standardPersonalityKeys);
       });
       longitudinalToggle = standardPersonalityToggle;
     } else if (param == "RelaxedPersonalityProfile") {
-      FrogPilotParamManageControl *relaxedPersonalityToggle = new FrogPilotParamManageControl(param, title, desc, icon);
-      QObject::connect(relaxedPersonalityToggle, &FrogPilotParamManageControl::manageButtonClicked, [this]() {
+      FrogPilotManageControl *relaxedPersonalityToggle = new FrogPilotManageControl(param, title, desc, icon);
+      QObject::connect(relaxedPersonalityToggle, &FrogPilotManageControl::manageButtonClicked, [this]() {
         customPersonalityOpen = true;
         openSubParentToggle();
         showToggles(relaxedPersonalityKeys);
@@ -146,69 +148,66 @@ FrogPilotLongitudinalPanel::FrogPilotLongitudinalPanel(FrogPilotSettingsWindow *
                standardPersonalityKeys.find(param) != standardPersonalityKeys.end() ||
                relaxedPersonalityKeys.find(param) != relaxedPersonalityKeys.end()) {
       if (param == "TrafficFollow" || param == "AggressiveFollow" || param == "StandardFollow" || param == "RelaxedFollow") {
+        std::map<float, QString> followTimeLabels;
+        for (float i = 0; i <= 5; i += 0.01) {
+          followTimeLabels[i] = QString::number(i, 'f', 2) + tr((QString::number(i, 'f', 2) == "1.0") ? " second" : " seconds");
+        }
         if (param == "TrafficFollow") {
-          longitudinalToggle = new FrogPilotParamValueControl(param, title, desc, icon, 0.5, 5, tr(" seconds"), std::map<int, QString>(), 0.01);
+          longitudinalToggle = new FrogPilotParamValueControl(param, title, desc, icon, 0.5, 5, QString(), followTimeLabels, 0.01);
         } else {
-          longitudinalToggle = new FrogPilotParamValueControl(param, title, desc, icon, 1, 5, tr(" seconds"), std::map<int, QString>(), 0.01);
+          longitudinalToggle = new FrogPilotParamValueControl(param, title, desc, icon, 1, 5, QString(), followTimeLabels, 0.01);
         }
       } else {
         longitudinalToggle = new FrogPilotParamValueControl(param, title, desc, icon, 1, 500, "%");
       }
 
     } else if (param == "ConditionalExperimental") {
-      FrogPilotParamManageControl *conditionalExperimentalToggle = new FrogPilotParamManageControl(param, title, desc, icon);
-      QObject::connect(conditionalExperimentalToggle, &FrogPilotParamManageControl::manageButtonClicked, [this]() {
-        std::set<QString> modifiedConditionalExperimentalKeys = conditionalExperimentalKeys;
-
-        if (customizationLevel != 2) {
-          modifiedConditionalExperimentalKeys.erase("CENavigation");
-          modifiedConditionalExperimentalKeys.erase("CESignalSpeed");
-          modifiedConditionalExperimentalKeys.erase("HideCEMStatusBar");
-        }
-
-        showToggles(modifiedConditionalExperimentalKeys);
+      FrogPilotManageControl *conditionalExperimentalToggle = new FrogPilotManageControl(param, title, desc, icon);
+      QObject::connect(conditionalExperimentalToggle, &FrogPilotManageControl::manageButtonClicked, [this]() {
+        showToggles(conditionalExperimentalKeys);
       });
       longitudinalToggle = conditionalExperimentalToggle;
     } else if (param == "CESpeed") {
-      FrogPilotParamValueControl *CESpeed = new FrogPilotParamValueControl(param, title, desc, icon, 0, 99, tr("mph"), std::map<int, QString>(), 1.0, true);
-      FrogPilotParamValueControl *CESpeedLead = new FrogPilotParamValueControl("CESpeedLead", tr(" With Lead"), tr("Switches to 'Experimental Mode' when driving below the set speed with a lead vehicle."), icon, 0, 99, tr("mph"), std::map<int, QString>(), 1.0, true);
-      FrogPilotDualParamControl *conditionalSpeeds = new FrogPilotDualParamControl(CESpeed, CESpeedLead);
+      FrogPilotParamValueControl *CESpeed = new FrogPilotParamValueControl(param, title, desc, icon, 0, 99, tr("mph"), std::map<float, QString>(), 1, true);
+      FrogPilotParamValueControl *CESpeedLead = new FrogPilotParamValueControl("CESpeedLead", tr(" With Lead"), tr("Switches to 'Experimental Mode' when driving below the set speed with a lead vehicle."), icon, 0, 99, tr("mph"), std::map<float, QString>(), 1, true);
+      FrogPilotDualParamValueControl *conditionalSpeeds = new FrogPilotDualParamValueControl(CESpeed, CESpeedLead);
       longitudinalToggle = reinterpret_cast<AbstractControl*>(conditionalSpeeds);
     } else if (param == "CECurves") {
       std::vector<QString> curveToggles{"CECurvesLead"};
       std::vector<QString> curveToggleNames{tr("With Lead")};
-      longitudinalToggle = new FrogPilotButtonToggleControl(param, title, desc, curveToggles, curveToggleNames);
+      longitudinalToggle = new FrogPilotButtonToggleControl(param, title, desc, icon, curveToggles, curveToggleNames);
     } else if (param == "CELead") {
       std::vector<QString> leadToggles{"CESlowerLead", "CEStoppedLead"};
       std::vector<QString> leadToggleNames{tr("Slower Lead"), tr("Stopped Lead")};
-      longitudinalToggle = new FrogPilotButtonToggleControl(param, title, desc, leadToggles, leadToggleNames);
+      longitudinalToggle = new FrogPilotButtonToggleControl(param, title, desc, icon, leadToggles, leadToggleNames);
     } else if (param == "CENavigation") {
       std::vector<QString> navigationToggles{"CENavigationIntersections", "CENavigationTurns", "CENavigationLead"};
       std::vector<QString> navigationToggleNames{tr("Intersections"), tr("Turns"), tr("With Lead")};
-      longitudinalToggle = new FrogPilotButtonToggleControl(param, title, desc, navigationToggles, navigationToggleNames);
+      longitudinalToggle = new FrogPilotButtonToggleControl(param, title, desc, icon, navigationToggles, navigationToggleNames);
     } else if (param == "CEModelStopTime") {
-      longitudinalToggle = new FrogPilotParamValueControl(param, title, desc, icon, 0, 10, tr(" seconds"), {{0, "Off"}});
+      std::map<float, QString> stopTimeLabels;
+      for (int i = 0; i <= 10; ++i) {
+        stopTimeLabels[i] = i == 0 ? tr("Off") : i == 1 ? QString::number(i) + tr(" second") : QString::number(i) + tr(" seconds");
+      }
+      longitudinalToggle = new FrogPilotParamValueControl(param, title, desc, icon, 0, 10, QString(), stopTimeLabels);
     } else if (param == "CESignalSpeed") {
       std::vector<QString> ceSignalToggles{"CESignalLaneDetection"};
       std::vector<QString> ceSignalToggleNames{"Only For Detected Lanes"};
-      longitudinalToggle = new FrogPilotParamValueButtonControl(param, title, desc, icon, 0, 99, tr("mph"), std::map<int, QString>(), 1.0, ceSignalToggles, ceSignalToggleNames, true);
+      longitudinalToggle = new FrogPilotParamValueButtonControl(param, title, desc, icon, 0, 99, tr("mph"), std::map<float, QString>(), 1.0, ceSignalToggles, ceSignalToggleNames, true);
 
     } else if (param == "CurveSpeedControl") {
-      FrogPilotParamManageControl *curveControlToggle = new FrogPilotParamManageControl(param, title, desc, icon);
-      QObject::connect(curveControlToggle, &FrogPilotParamManageControl::manageButtonClicked, [this]() {
-        curveDetectionBtn->setEnabledButtons(0, QDir("/data/media/0/osm/offline").exists());
-        curveDetectionBtn->setCheckedButton(0, params.getBool("MTSCEnabled"));
-        curveDetectionBtn->setCheckedButton(1, params.getBool("VisionTurnControl"));
+      FrogPilotManageControl *curveControlToggle = new FrogPilotManageControl(param, title, desc, icon);
+      QObject::connect(curveControlToggle, &FrogPilotManageControl::manageButtonClicked, [this]() {
+        curveDetectionToggle->setEnabledButtons(0, QDir("/data/media/0/osm/offline").exists());
 
         std::set<QString> modifiedCurveSpeedKeys = curveSpeedKeys;
 
-        if (!params.getBool("MTSCEnabled")) {
+        if (!params.getBool("MapTurnControl")) {
           modifiedCurveSpeedKeys.erase("MTSCCurvatureCheck");
         }
 
-        if (customizationLevel != 2) {
+        if (!(params.getBool("MapTurnControl") || params.getBool("VisionTurnControl"))) {
           modifiedCurveSpeedKeys.erase("CurveSensitivity");
-          modifiedCurveSpeedKeys.erase("MTSCCurvatureCheck");
           modifiedCurveSpeedKeys.erase("TurnAggressiveness");
         }
 
@@ -216,44 +215,42 @@ FrogPilotLongitudinalPanel::FrogPilotLongitudinalPanel(FrogPilotSettingsWindow *
       });
       longitudinalToggle = curveControlToggle;
     } else if (param == "CurveDetectionMethod") {
-      curveDetectionBtn = new FrogPilotButtonsControl(title, desc, {tr("Map Based"), tr("Vision")}, true, false);
-      QObject::connect(curveDetectionBtn, &FrogPilotButtonsControl::buttonClicked, [=](int id) {
-        bool mtscEnabled = params.getBool("MTSCEnabled");
-        bool vtscEnabled = params.getBool("VisionTurnControl");
+      std::vector<QString> curveDetectionToggles{"MapTurnControl", "VisionTurnControl"};
+      std::vector<QString> curveDetectionToggleNames{tr("Map Based"), tr("Vision")};
+      curveDetectionToggle = new FrogPilotButtonsControl(title, desc, icon, curveDetectionToggleNames, true, false);
+      for (int i = 0; i < curveDetectionToggles.size(); ++i) {
+        if (params.getBool(curveDetectionToggles[i].toStdString())) {
+          curveDetectionToggle->setCheckedButton(i);
+        }
+      }
+      QObject::connect(curveDetectionToggle, &FrogPilotButtonsControl::buttonClicked, [this, curveDetectionToggles](int id) {
+        params.putBool(curveDetectionToggles[id].toStdString(), !params.getBool(curveDetectionToggles[id].toStdString()));
 
+        std::set<QString> modifiedCurveSpeedKeys = curveSpeedKeys;
+
+        if (!params.getBool("MapTurnControl")) {
+          modifiedCurveSpeedKeys.erase("MTSCCurvatureCheck");
+        }
+
+        if (!(params.getBool("MapTurnControl") || params.getBool("VisionTurnControl"))) {
+          modifiedCurveSpeedKeys.erase("CurveSensitivity");
+          modifiedCurveSpeedKeys.erase("TurnAggressiveness");
+        }
+
+        showToggles(modifiedCurveSpeedKeys);
+      });
+      QObject::connect(curveDetectionToggle, &FrogPilotButtonsControl::disabledButtonClicked, [this](int id) {
         if (id == 0) {
-          if (mtscEnabled && !vtscEnabled) {
-            curveDetectionBtn->setCheckedButton(0, true);
-            return;
-          }
-
-          params.putBool("MTSCEnabled", !mtscEnabled);
-          curveDetectionBtn->setCheckedButton(0, !mtscEnabled);
-
-          std::set<QString> modifiedCurveSpeedKeys = curveSpeedKeys;
-
-          if (mtscEnabled) {
-            modifiedCurveSpeedKeys.erase("MTSCCurvatureCheck");
-          }
-
-          showToggles(modifiedCurveSpeedKeys);
-        } else if (id == 1) {
-          if (vtscEnabled && !mtscEnabled) {
-            curveDetectionBtn->setCheckedButton(1, true);
-            return;
-          }
-
-          params.putBool("VisionTurnControl", !vtscEnabled);
-          curveDetectionBtn->setCheckedButton(1, !vtscEnabled);
+          ConfirmationDialog::alert(tr("The 'Map Based' option is only available when some 'Map Data' has been downloaded!"), this);
         }
       });
-      longitudinalToggle = curveDetectionBtn;
+      longitudinalToggle = curveDetectionToggle;
     } else if (param == "CurveSensitivity" || param == "TurnAggressiveness") {
       longitudinalToggle = new FrogPilotParamValueControl(param, title, desc, icon, 1, 200, "%");
 
     } else if (param == "ExperimentalModeActivation") {
-      FrogPilotParamManageControl *experimentalModeActivationToggle = new FrogPilotParamManageControl(param, title, desc, icon);
-      QObject::connect(experimentalModeActivationToggle, &FrogPilotParamManageControl::manageButtonClicked, [this]() {
+      FrogPilotManageControl *experimentalModeActivationToggle = new FrogPilotManageControl(param, title, desc, icon);
+      QObject::connect(experimentalModeActivationToggle, &FrogPilotManageControl::manageButtonClicked, [this]() {
         std::set<QString> modifiedExperimentalModeActivationKeys = experimentalModeActivationKeys;
 
         if (isSubaru || (params.getBool("AlwaysOnLateral") && params.getBool("AlwaysOnLateralLKAS"))) {
@@ -265,23 +262,9 @@ FrogPilotLongitudinalPanel::FrogPilotLongitudinalPanel(FrogPilotSettingsWindow *
       longitudinalToggle = experimentalModeActivationToggle;
 
     } else if (param == "LongitudinalTune") {
-      FrogPilotParamManageControl *longitudinalTuneToggle = new FrogPilotParamManageControl(param, title, desc, icon);
-      QObject::connect(longitudinalTuneToggle, &FrogPilotParamManageControl::manageButtonClicked, [this]() {
-        std::set<QString> modifiedLongitudinalTuneKeys = longitudinalTuneKeys;
-
-        if (customizationLevel == 0) {
-          modifiedLongitudinalTuneKeys.erase("HumanAcceleration");
-          modifiedLongitudinalTuneKeys.erase("HumanFollowing");
-          modifiedLongitudinalTuneKeys.erase("LeadDetectionThreshold");
-          modifiedLongitudinalTuneKeys.erase("MaxDesiredAcceleration");
-        } else if (customizationLevel == 1) {
-          modifiedLongitudinalTuneKeys.erase("HumanAcceleration");
-          modifiedLongitudinalTuneKeys.erase("HumanFollowing");
-          modifiedLongitudinalTuneKeys.erase("LeadDetectionThreshold");
-          modifiedLongitudinalTuneKeys.erase("MaxDesiredAcceleration");
-        }
-
-        showToggles(modifiedLongitudinalTuneKeys);
+      FrogPilotManageControl *longitudinalTuneToggle = new FrogPilotManageControl(param, title, desc, icon);
+      QObject::connect(longitudinalTuneToggle, &FrogPilotManageControl::manageButtonClicked, [this]() {
+        showToggles(longitudinalTuneKeys);
       });
       longitudinalToggle = longitudinalTuneToggle;
     } else if (param == "AccelerationProfile") {
@@ -295,11 +278,11 @@ FrogPilotLongitudinalPanel::FrogPilotLongitudinalPanel(FrogPilotSettingsWindow *
     } else if (param == "LeadDetectionThreshold") {
       longitudinalToggle = new FrogPilotParamValueControl(param, title, desc, icon, 1, 99, "%");
     } else if (param == "MaxDesiredAcceleration") {
-      longitudinalToggle = new FrogPilotParamValueControl(param, title, desc, icon, 0.1, 4.0, "m/s", std::map<int, QString>(), 0.1);
+      longitudinalToggle = new FrogPilotParamValueControl(param, title, desc, icon, 0.1, 4.0, "m/s", std::map<float, QString>(), 0.1);
 
     } else if (param == "QOLLongitudinal") {
-      FrogPilotParamManageControl *qolLongitudinalToggle = new FrogPilotParamManageControl(param, title, desc, icon);
-      QObject::connect(qolLongitudinalToggle, &FrogPilotParamManageControl::manageButtonClicked, [this]() {
+      FrogPilotManageControl *qolLongitudinalToggle = new FrogPilotManageControl(param, title, desc, icon);
+      QObject::connect(qolLongitudinalToggle, &FrogPilotManageControl::manageButtonClicked, [this]() {
         std::set<QString> modifiedQolKeys = qolKeys;
 
         if (!hasPCMCruise) {
@@ -314,13 +297,6 @@ FrogPilotLongitudinalPanel::FrogPilotLongitudinalPanel(FrogPilotSettingsWindow *
           modifiedQolKeys.erase("MapGears");
         }
 
-        if (customizationLevel != 2) {
-          modifiedQolKeys.erase("ForceStandstill");
-          modifiedQolKeys.erase("ForceStops");
-          modifiedQolKeys.erase("ReverseCruise");
-          modifiedQolKeys.erase("SetSpeedOffset");
-        }
-
         showToggles(modifiedQolKeys);
       });
       longitudinalToggle = qolLongitudinalToggle;
@@ -333,35 +309,18 @@ FrogPilotLongitudinalPanel::FrogPilotLongitudinalPanel(FrogPilotSettingsWindow *
     } else if (param == "MapGears") {
       std::vector<QString> mapGearsToggles{"MapAcceleration", "MapDeceleration"};
       std::vector<QString> mapGearsToggleNames{tr("Acceleration"), tr("Deceleration")};
-      longitudinalToggle = new FrogPilotButtonToggleControl(param, title, desc, mapGearsToggles, mapGearsToggleNames);
+      longitudinalToggle = new FrogPilotButtonToggleControl(param, title, desc, icon, mapGearsToggles, mapGearsToggleNames);
     } else if (param == "SetSpeedOffset") {
       longitudinalToggle = new FrogPilotParamValueControl(param, title, desc, icon, 0, 99, tr("mph"));
 
     } else if (param == "SpeedLimitController") {
-      FrogPilotParamManageControl *speedLimitControllerToggle = new FrogPilotParamManageControl(param, title, desc, icon);
-      QObject::connect(speedLimitControllerToggle, &FrogPilotParamManageControl::manageButtonClicked, [this]() {
-        std::set<QString> modifiedSpeedLimitControllerKeys = speedLimitControllerKeys;
-
-        if (customizationLevel == 0) {
-          modifiedSpeedLimitControllerKeys.erase("SLCFallback");
-          modifiedSpeedLimitControllerKeys.erase("SLCOverride");
-          modifiedSpeedLimitControllerKeys.erase("SLCPriority");
-          modifiedSpeedLimitControllerKeys.erase("SLCQOL");
-          modifiedSpeedLimitControllerKeys.erase("SpeedLimitSources");
-        } else if (customizationLevel != 2) {
-          modifiedSpeedLimitControllerKeys.erase("SLCPriority");
-          modifiedSpeedLimitControllerKeys.erase("SLCQOL");
-        }
-
-        showToggles(modifiedSpeedLimitControllerKeys);
-
+      FrogPilotManageControl *speedLimitControllerToggle = new FrogPilotManageControl(param, title, desc, icon);
+      QObject::connect(speedLimitControllerToggle, &FrogPilotManageControl::manageButtonClicked, [this]() {
         slcOpen = true;
+
+        showToggles(speedLimitControllerKeys);
       });
       longitudinalToggle = speedLimitControllerToggle;
-    } else if (param == "SLCConfirmation") {
-      std::vector<QString> confirmationToggles{"SLCConfirmationLower", "SLCConfirmationHigher"};
-      std::vector<QString> confirmationToggleNames{tr("Lower Limits"), tr("Higher Limits")};
-      longitudinalToggle = new FrogPilotButtonToggleControl(param, title, desc, confirmationToggles, confirmationToggleNames);
     } else if (param == "SLCFallback") {
       std::vector<QString> fallbackOptions{tr("Set Speed"), tr("Experimental Mode"), tr("Previous Limit")};
       ButtonParamControl *fallbackSelection = new ButtonParamControl(param, title, desc, icon, fallbackOptions);
@@ -372,43 +331,35 @@ FrogPilotLongitudinalPanel::FrogPilotLongitudinalPanel(FrogPilotSettingsWindow *
       longitudinalToggle = overrideSelection;
     } else if (param == "SLCPriority") {
       ButtonControl *slcPriorityButton = new ButtonControl(title, tr("SELECT"), desc);
-      QStringList primaryPriorities = {tr("None"), tr("Dashboard"), tr("Map Data"), tr("Navigation"), tr("Highest"), tr("Lowest")};
-      QStringList secondaryTertiaryPriorities = {tr("None"), tr("Dashboard"), tr("Map Data"), tr("Navigation")};
+      QStringList primaryPriorities = {tr("Dashboard"), tr("Map Data"), tr("Navigation"), tr("Highest"), tr("Lowest")};
+      QStringList otherPriorities = {tr("None"), tr("Dashboard"), tr("Map Data"), tr("Navigation")};
       QStringList priorityPrompts = {tr("Select your primary priority"), tr("Select your secondary priority"), tr("Select your tertiary priority")};
 
       QObject::connect(slcPriorityButton, &ButtonControl::clicked, [=]() {
         QStringList selectedPriorities;
 
         for (int i = 1; i <= 3; ++i) {
-          QStringList currentPriorities = (i == 1) ? primaryPriorities : secondaryTertiaryPriorities;
-          QStringList prioritiesToDisplay = currentPriorities;
-
-          for (QString selectedPriority : qAsConst(selectedPriorities)) {
-            prioritiesToDisplay.removeAll(selectedPriority);
-          }
+          QStringList availablePriorities = (i == 1) ? primaryPriorities : otherPriorities;
+          availablePriorities = availablePriorities.toSet().subtract(selectedPriorities.toSet()).toList();
 
           if (!hasDashSpeedLimits) {
-            prioritiesToDisplay.removeAll(tr("Dashboard"));
+            availablePriorities.removeAll(tr("Dashboard"));
           }
-
-          if (prioritiesToDisplay.size() == 1 && prioritiesToDisplay.contains(tr("None"))) {
+          if (availablePriorities.size() == 1 && availablePriorities.contains(tr("None"))) {
             break;
           }
 
-          QString priorityKey = QString("SLCPriority%1").arg(i);
-          QString selection = MultiOptionDialog::getSelection(priorityPrompts[i - 1], prioritiesToDisplay, "", this);
-
+          QString selection = MultiOptionDialog::getSelection(priorityPrompts[i - 1], availablePriorities, "", this);
           if (selection.isEmpty()) {
             break;
           }
 
-          params.putNonBlocking(priorityKey.toStdString(), selection.toStdString());
+          params.put(QString("SLCPriority%1").arg(i).toStdString(), selection.toStdString());
           selectedPriorities.append(selection);
 
           if (selection == tr("None")) {
             for (int j = i + 1; j <= 3; ++j) {
-              QString priorityKeyNext = QString("SLCPriority%1").arg(j);
-              params.putNonBlocking(priorityKeyNext.toStdString(), "None");
+              params.put(QString("SLCPriority%1").arg(j).toStdString(), tr("None").toStdString());
             }
             break;
           }
@@ -416,8 +367,6 @@ FrogPilotLongitudinalPanel::FrogPilotLongitudinalPanel(FrogPilotSettingsWindow *
           if (selection == tr("Lowest") || selection == tr("Highest")) {
             break;
           }
-
-          updateFrogPilotToggles();
         }
 
         selectedPriorities.removeAll(tr("None"));
@@ -426,10 +375,8 @@ FrogPilotLongitudinalPanel::FrogPilotLongitudinalPanel(FrogPilotSettingsWindow *
 
       QStringList initialPriorities;
       for (int i = 1; i <= 3; ++i) {
-        QString priorityKey = QString("SLCPriority%1").arg(i);
-        QString priority = QString::fromStdString(params.get(priorityKey.toStdString()));
-
-        if (!priority.isEmpty() && primaryPriorities.contains(priority) && priority != tr("None")) {
+        QString priority = QString::fromStdString(params.get(QString("SLCPriority%1").arg(i).toStdString()));
+        if (!priority.isEmpty() && priority != tr("None") && primaryPriorities.contains(priority)) {
           initialPriorities.append(priority);
         }
       }
@@ -441,11 +388,12 @@ FrogPilotLongitudinalPanel::FrogPilotLongitudinalPanel(FrogPilotSettingsWindow *
         openSubParentToggle();
         showToggles(speedLimitControllerOffsetsKeys);
       });
-      longitudinalToggle = reinterpret_cast<AbstractControl*>(manageSLCOffsetsBtn);
+      longitudinalToggle = manageSLCOffsetsBtn;
     } else if (param == "SLCQOL") {
       ButtonControl *manageSLCQOLBtn = new ButtonControl(title, tr("MANAGE"), desc);
       QObject::connect(manageSLCQOLBtn, &ButtonControl::clicked, [this]() {
         openSubParentToggle();
+
         std::set<QString> modifiedSpeedLimitControllerQOLKeys = speedLimitControllerQOLKeys;
 
         if (hasPCMCruise) {
@@ -458,11 +406,22 @@ FrogPilotLongitudinalPanel::FrogPilotLongitudinalPanel(FrogPilotSettingsWindow *
 
         showToggles(modifiedSpeedLimitControllerQOLKeys);
       });
-      longitudinalToggle = reinterpret_cast<AbstractControl*>(manageSLCQOLBtn);
+      longitudinalToggle = manageSLCQOLBtn;
+    } else if (param == "SLCConfirmation") {
+      std::vector<QString> confirmationToggles{"SLCConfirmationLower", "SLCConfirmationHigher"};
+      std::vector<QString> confirmationToggleNames{tr("Lower Limits"), tr("Higher Limits")};
+      longitudinalToggle = new FrogPilotButtonToggleControl(param, title, desc, icon, confirmationToggles, confirmationToggleNames);
     } else if (param == "SLCLookaheadHigher" || param == "SLCLookaheadLower") {
       longitudinalToggle = new FrogPilotParamValueControl(param, title, desc, icon, 0, 30, tr(" seconds"));
     } else if (param == "Offset1" || param == "Offset2" || param == "Offset3" || param == "Offset4") {
       longitudinalToggle = new FrogPilotParamValueControl(param, title, desc, icon, -99, 99, tr("mph"));
+    } else if (param == "SLCVisuals") {
+      ButtonControl *manageSLCVisualsBtn = new ButtonControl(title, tr("MANAGE"), desc);
+      QObject::connect(manageSLCVisualsBtn, &ButtonControl::clicked, [this]() {
+        openSubParentToggle();
+        showToggles(speedLimitControllerVisualKeys);
+      });
+      longitudinalToggle = manageSLCVisualsBtn;
 
     } else {
       longitudinalToggle = new ParamControl(param, title, desc, icon);
@@ -471,20 +430,14 @@ FrogPilotLongitudinalPanel::FrogPilotLongitudinalPanel(FrogPilotSettingsWindow *
     addItem(longitudinalToggle);
     toggles[param] = longitudinalToggle;
 
-    makeConnections(longitudinalToggle);
-
-    if (FrogPilotParamManageControl *frogPilotManageToggle = qobject_cast<FrogPilotParamManageControl*>(longitudinalToggle)) {
-      QObject::connect(frogPilotManageToggle, &FrogPilotParamManageControl::manageButtonClicked, this, &FrogPilotLongitudinalPanel::openParentToggle);
+    if (FrogPilotManageControl *frogPilotManageToggle = qobject_cast<FrogPilotManageControl*>(longitudinalToggle)) {
+      QObject::connect(frogPilotManageToggle, &FrogPilotManageControl::manageButtonClicked, this, &FrogPilotLongitudinalPanel::openParentToggle);
     }
-
-    QObject::connect(longitudinalToggle, &AbstractControl::showDescriptionEvent, [this]() {
-      update();
-    });
   }
 
   QObject::connect(static_cast<ToggleControl*>(toggles["ExperimentalModeViaLKAS"]), &ToggleControl::toggleFlipped, [this](bool state) {
     if (state && params.getBool("AlwaysOnLateralLKAS")) {
-      params.putBoolNonBlocking("AlwaysOnLateralLKAS", false);
+      params.putBool("AlwaysOnLateralLKAS", false);
     }
   });
 
@@ -497,19 +450,18 @@ FrogPilotLongitudinalPanel::FrogPilotLongitudinalPanel(FrogPilotSettingsWindow *
   FrogPilotButtonsControl *trafficResetButton = static_cast<FrogPilotButtonsControl*>(toggles["ResetTrafficPersonality"]);
   QObject::connect(trafficResetButton, &FrogPilotButtonsControl::buttonClicked, this, [=]() {
     if (FrogPilotConfirmationDialog::yesorno(tr("Are you sure you want to completely reset your settings for 'Traffic Mode'?"), this)) {
-      params.putFloat("TrafficFollow", 0.5);
-      params.putFloat("TrafficJerkAcceleration", 50);
-      params.putFloat("TrafficJerkDeceleration", 50);
-      params.putFloat("TrafficJerkDanger", 100);
-      params.putFloat("TrafficJerkSpeed", 50);
-      params.putFloat("TrafficJerkSpeedDecrease", 50);
+      params.putFloat("TrafficFollow", params_default.getFloat("TrafficFollow"));
+      params.putFloat("TrafficJerkAcceleration", params_default.getFloat("TrafficJerkAcceleration"));
+      params.putFloat("TrafficJerkDeceleration", params_default.getFloat("TrafficJerkDeceleration"));
+      params.putFloat("TrafficJerkDanger", params_default.getFloat("TrafficJerkDanger"));
+      params.putFloat("TrafficJerkSpeed", params_default.getFloat("TrafficJerkSpeed"));
+      params.putFloat("TrafficJerkSpeedDecrease", params_default.getFloat("TrafficJerkSpeedDecrease"));
       trafficFollowToggle->refresh();
       trafficAccelerationToggle->refresh();
       trafficDecelerationToggle->refresh();
       trafficDangerToggle->refresh();
       trafficSpeedToggle->refresh();
       trafficSpeedDecreaseToggle->refresh();
-      updateFrogPilotToggles();
     }
   });
 
@@ -522,19 +474,18 @@ FrogPilotLongitudinalPanel::FrogPilotLongitudinalPanel(FrogPilotSettingsWindow *
   FrogPilotButtonsControl *aggressiveResetButton = static_cast<FrogPilotButtonsControl*>(toggles["ResetAggressivePersonality"]);
   QObject::connect(aggressiveResetButton, &FrogPilotButtonsControl::buttonClicked, this, [=]() {
     if (FrogPilotConfirmationDialog::yesorno(tr("Are you sure you want to completely reset your settings for the 'Aggressive' personality?"), this)) {
-      params.putFloat("AggressiveFollow", 1.25);
-      params.putFloat("AggressiveJerkAcceleration", 50);
-      params.putFloat("AggressiveJerkDeceleration", 50);
-      params.putFloat("AggressiveJerkDanger", 100);
-      params.putFloat("AggressiveJerkSpeed", 50);
-      params.putFloat("AggressiveJerkSpeedDecrease", 50);
+      params.putFloat("AggressiveFollow", params_default.getFloat("AggressiveFollow"));
+      params.putFloat("AggressiveJerkAcceleration", params_default.getFloat("AggressiveJerkAcceleration"));
+      params.putFloat("AggressiveJerkDeceleration", params_default.getFloat("AggressiveJerkDeceleration"));
+      params.putFloat("AggressiveJerkDanger", params_default.getFloat("AggressiveJerkDanger"));
+      params.putFloat("AggressiveJerkSpeed", params_default.getFloat("AggressiveJerkSpeed"));
+      params.putFloat("AggressiveJerkSpeedDecrease", params_default.getFloat("AggressiveJerkSpeedDecrease"));
       aggressiveFollowToggle->refresh();
       aggressiveAccelerationToggle->refresh();
       aggressiveDecelerationToggle->refresh();
       aggressiveDangerToggle->refresh();
       aggressiveSpeedToggle->refresh();
       aggressiveSpeedDecreaseToggle->refresh();
-      updateFrogPilotToggles();
     }
   });
 
@@ -547,19 +498,18 @@ FrogPilotLongitudinalPanel::FrogPilotLongitudinalPanel(FrogPilotSettingsWindow *
   FrogPilotButtonsControl *standardResetButton = static_cast<FrogPilotButtonsControl*>(toggles["ResetStandardPersonality"]);
   QObject::connect(standardResetButton, &FrogPilotButtonsControl::buttonClicked, this, [=]() {
     if (FrogPilotConfirmationDialog::yesorno(tr("Are you sure you want to completely reset your settings for the 'Standard' personality?"), this)) {
-      params.putFloat("StandardFollow", 1.45);
-      params.putFloat("StandardJerkAcceleration", 100);
-      params.putFloat("StandardJerkDeceleration", 100);
-      params.putFloat("StandardJerkDanger", 100);
-      params.putFloat("StandardJerkSpeed", 100);
-      params.putFloat("StandardJerkSpeedDecrease", 100);
+      params.putFloat("StandardFollow", params_default.getFloat("StandardFollow"));
+      params.putFloat("StandardJerkAcceleration", params_default.getFloat("StandardJerkAcceleration"));
+      params.putFloat("StandardJerkDeceleration", params_default.getFloat("StandardJerkDeceleration"));
+      params.putFloat("StandardJerkDanger", params_default.getFloat("StandardJerkDanger"));
+      params.putFloat("StandardJerkSpeed", params_default.getFloat("StandardJerkSpeed"));
+      params.putFloat("StandardJerkSpeedDecrease", params_default.getFloat("StandardJerkSpeedDecrease"));
       standardFollowToggle->refresh();
       standardAccelerationToggle->refresh();
       standardDecelerationToggle->refresh();
       standardDangerToggle->refresh();
       standardSpeedToggle->refresh();
       standardSpeedDecreaseToggle->refresh();
-      updateFrogPilotToggles();
     }
   });
 
@@ -572,58 +522,44 @@ FrogPilotLongitudinalPanel::FrogPilotLongitudinalPanel(FrogPilotSettingsWindow *
   FrogPilotButtonsControl *relaxedResetButton = static_cast<FrogPilotButtonsControl*>(toggles["ResetRelaxedPersonality"]);
   QObject::connect(relaxedResetButton, &FrogPilotButtonsControl::buttonClicked, this, [=]() {
     if (FrogPilotConfirmationDialog::yesorno(tr("Are you sure you want to completely reset your settings for the 'Relaxed' personality?"), this)) {
-      params.putFloat("RelaxedFollow", 1.75);
-      params.putFloat("RelaxedJerkAcceleration", 100);
-      params.putFloat("RelaxedJerkDeceleration", 100);
-      params.putFloat("RelaxedJerkDanger", 100);
-      params.putFloat("RelaxedJerkSpeed", 100);
-      params.putFloat("RelaxedJerkSpeedDecrease", 100);
+      params.putFloat("RelaxedFollow", params_default.getFloat("RelaxedFollow"));
+      params.putFloat("RelaxedJerkAcceleration", params_default.getFloat("RelaxedJerkAcceleration"));
+      params.putFloat("RelaxedJerkDeceleration", params_default.getFloat("RelaxedJerkDeceleration"));
+      params.putFloat("RelaxedJerkDanger", params_default.getFloat("RelaxedJerkDanger"));
+      params.putFloat("RelaxedJerkSpeed", params_default.getFloat("RelaxedJerkSpeed"));
+      params.putFloat("RelaxedJerkSpeedDecrease", params_default.getFloat("RelaxedJerkSpeedDecrease"));
       relaxedFollowToggle->refresh();
       relaxedAccelerationToggle->refresh();
       relaxedDecelerationToggle->refresh();
       relaxedDangerToggle->refresh();
       relaxedSpeedToggle->refresh();
       relaxedSpeedDecreaseToggle->refresh();
-      updateFrogPilotToggles();
     }
   });
 
   QObject::connect(parent, &FrogPilotSettingsWindow::closeParentToggle, this, &FrogPilotLongitudinalPanel::hideToggles);
   QObject::connect(parent, &FrogPilotSettingsWindow::closeSubParentToggle, this, &FrogPilotLongitudinalPanel::hideSubToggles);
-  QObject::connect(parent, &FrogPilotSettingsWindow::updateCarToggles, this, &FrogPilotLongitudinalPanel::updateCarToggles);
   QObject::connect(parent, &FrogPilotSettingsWindow::updateMetric, this, &FrogPilotLongitudinalPanel::updateMetric);
-
-  updateMetric();
 }
 
 void FrogPilotLongitudinalPanel::showEvent(QShowEvent *event) {
-  customizationLevel = parent->customizationLevel;
-
-  toggles["ConditionalExperimental"]->setVisible(customizationLevel != 0);
-  toggles["CurveSpeedControl"]->setVisible(customizationLevel != 0);
-  toggles["CustomPersonalities"]->setVisible(customizationLevel == 2);
-  toggles["ExperimentalModeActivation"]->setVisible(customizationLevel != 0);
-  toggles["QOLLongitudinal"]->setVisible(customizationLevel != 0);
-}
-
-void FrogPilotLongitudinalPanel::updateCarToggles() {
+  frogpilotToggleLevels = parent->frogpilotToggleLevels;
   hasDashSpeedLimits = parent->hasDashSpeedLimits;
   hasPCMCruise = parent->hasPCMCruise;
   isGM = parent->isGM;
   isHKGCanFd = parent->isHKGCanFd;
   isSubaru = parent->isSubaru;
   isToyota = parent->isToyota;
+  tuningLevel = parent->tuningLevel;
 
   hideToggles();
 }
 
-void FrogPilotLongitudinalPanel::updateMetric() {
-  bool previousIsMetric = isMetric;
-  isMetric = params.getBool("IsMetric");
-
-  if (isMetric != previousIsMetric) {
-    double distanceConversion = isMetric ? FOOT_TO_METER : METER_TO_FOOT;
-    double speedConversion = isMetric ? MILE_TO_KM : KM_TO_MILE;
+void FrogPilotLongitudinalPanel::updateMetric(bool metric, bool bootRun) {
+  static bool previousMetric;
+  if (metric != previousMetric && !bootRun) {
+    double distanceConversion = metric ? FOOT_TO_METER : METER_TO_FOOT;
+    double speedConversion = metric ? MILE_TO_KM : KM_TO_MILE;
 
     params.putFloatNonBlocking("IncreasedStoppedDistance", params.getFloat("IncreasedStoppedDistance") * distanceConversion);
 
@@ -638,9 +574,10 @@ void FrogPilotLongitudinalPanel::updateMetric() {
     params.putFloatNonBlocking("Offset4", params.getFloat("Offset4") * speedConversion);
     params.putFloatNonBlocking("SetSpeedOffset", params.getFloat("SetSpeedOffset") * speedConversion);
   }
+  previousMetric = metric;
 
-  FrogPilotDualParamControl *ceSpeedToggle = reinterpret_cast<FrogPilotDualParamControl*>(toggles["CESpeed"]);
-  FrogPilotParamValueButtonControl *ceSignal = reinterpret_cast<FrogPilotParamValueButtonControl*>(toggles["CESignalSpeed"]);
+  FrogPilotDualParamValueControl *ceSpeedToggle = reinterpret_cast<FrogPilotDualParamValueControl*>(toggles["CESpeed"]);
+  FrogPilotParamValueButtonControl *ceSignal = static_cast<FrogPilotParamValueButtonControl*>(toggles["CESignalSpeed"]);
   FrogPilotParamValueControl *customCruiseToggle = static_cast<FrogPilotParamValueControl*>(toggles["CustomCruise"]);
   FrogPilotParamValueControl *customCruiseLongToggle = static_cast<FrogPilotParamValueControl*>(toggles["CustomCruiseLong"]);
   FrogPilotParamValueControl *offset1Toggle = static_cast<FrogPilotParamValueControl*>(toggles["Offset1"]);
@@ -650,7 +587,7 @@ void FrogPilotLongitudinalPanel::updateMetric() {
   FrogPilotParamValueControl *increasedStoppedDistanceToggle = static_cast<FrogPilotParamValueControl*>(toggles["IncreasedStoppedDistance"]);
   FrogPilotParamValueControl *setSpeedOffsetToggle = static_cast<FrogPilotParamValueControl*>(toggles["SetSpeedOffset"]);
 
-  if (isMetric) {
+  if (metric) {
     offset1Toggle->setTitle(tr("Speed Limit Offset (0-34 kph)"));
     offset2Toggle->setTitle(tr("Speed Limit Offset (35-54 kph)"));
     offset3Toggle->setTitle(tr("Speed Limit Offset (55-64 kph)"));
@@ -701,10 +638,11 @@ void FrogPilotLongitudinalPanel::showToggles(const std::set<QString> &keys) {
   setUpdatesEnabled(false);
 
   for (auto &[key, toggle] : toggles) {
-    toggle->setVisible(keys.find(key) != keys.end());
+    toggle->setVisible(keys.find(key) != keys.end() && tuningLevel >= frogpilotToggleLevels[key].toDouble());
   }
 
   setUpdatesEnabled(true);
+
   update();
 }
 
@@ -726,19 +664,21 @@ void FrogPilotLongitudinalPanel::hideToggles() {
                       speedLimitControllerKeys.find(key) != speedLimitControllerKeys.end() ||
                       speedLimitControllerOffsetsKeys.find(key) != speedLimitControllerOffsetsKeys.end() ||
                       speedLimitControllerQOLKeys.find(key) != speedLimitControllerQOLKeys.end() ||
+                      speedLimitControllerVisualKeys.find(key) != speedLimitControllerVisualKeys.end() ||
                       standardPersonalityKeys.find(key) != standardPersonalityKeys.end() ||
                       trafficPersonalityKeys.find(key) != trafficPersonalityKeys.end();
 
-    toggle->setVisible(!subToggles);
+    toggle->setVisible(!subToggles && tuningLevel >= frogpilotToggleLevels[key].toDouble());
   }
 
-  toggles["ConditionalExperimental"]->setVisible(customizationLevel != 0);
-  toggles["CurveSpeedControl"]->setVisible(customizationLevel != 0);
-  toggles["CustomPersonalities"]->setVisible(customizationLevel == 2);
-  toggles["ExperimentalModeActivation"]->setVisible(customizationLevel != 0);
-  toggles["QOLLongitudinal"]->setVisible(customizationLevel != 0);
+  std::set<QString> toggleKeys = {"ConditionalExperimental", "CurveSpeedControl"};
+  for (const QString &key : toggleKeys) {
+    FrogPilotManageControl *control = static_cast<FrogPilotManageControl*>(toggles[key]);
+    control->setManageVisibility(tuningLevel > frogpilotToggleLevels[key].toDouble());
+  }
 
   setUpdatesEnabled(true);
+
   update();
 }
 
@@ -747,16 +687,6 @@ void FrogPilotLongitudinalPanel::hideSubToggles() {
     customPersonalityOpen = false;
     showToggles(customDrivingPersonalityKeys);
   } else if (slcOpen) {
-    std::set<QString> modifiedSpeedLimitControllerKeys = speedLimitControllerKeys;
-
-    if (customizationLevel == 0) {
-      modifiedSpeedLimitControllerKeys.erase("SLCFallback");
-      modifiedSpeedLimitControllerKeys.erase("SLCOverride");
-      modifiedSpeedLimitControllerKeys.erase("SLCPriority");
-      modifiedSpeedLimitControllerKeys.erase("SLCQOL");
-      modifiedSpeedLimitControllerKeys.erase("SpeedLimitSources");
-    }
-
-    showToggles(modifiedSpeedLimitControllerKeys);
+    showToggles(speedLimitControllerKeys);
   }
 }

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <iostream>
 #include <memory>
 #include <string>
 
@@ -88,6 +89,10 @@ const QColor bg_colors [] = {
 };
 
 
+struct RadarTrackData {
+  QPointF calibrated_point;
+};
+
 typedef struct UIScene {
   bool calibration_valid = false;
   bool calibration_wide_valid  = false;
@@ -122,34 +127,21 @@ typedef struct UIScene {
   uint64_t started_frame;
 
   // FrogPilot variables
-  QColor lane_lines_color;
-  QColor lead_marker_color;
-  QColor path_color;
-  QColor path_edges_color;
-  QColor sidebar_color1;
-  QColor sidebar_color2;
-  QColor sidebar_color3;
-
-  QJsonObject frogpilot_toggles;
-
-  QPolygonF track_adjacent_vertices[6];
-  QPolygonF track_edge_vertices;
-
   bool acceleration_path;
   bool adjacent_path;
   bool adjacent_path_metrics;
   bool always_on_lateral;
   bool always_on_lateral_active;
-  bool aol_status_bar;
   bool big_map;
   bool blind_spot_left;
   bool blind_spot_path;
   bool blind_spot_right;
   bool brake_lights_on;
-  bool cem_status_bar;
+  bool cem_status;
   bool compass;
   bool conditional_experimental;
   bool cpu_metrics;
+  bool downloading_update;
   bool driver_camera_in_reverse;
   bool dynamic_path_width;
   bool dynamic_pedals_on_ui;
@@ -158,11 +150,10 @@ typedef struct UIScene {
   bool experimental_mode_via_tap;
   bool fahrenheit;
   bool force_onroad;
+  bool frogpilot_panel_active;
   bool frogs_go_moo;
   bool full_map;
   bool gpu_metrics;
-  bool has_auto_tune;
-  bool has_lead;
   bool hide_alerts;
   bool hide_csc_ui;
   bool hide_lead_marker;
@@ -172,7 +163,6 @@ typedef struct UIScene {
   bool hide_speed_limit;
   bool ip_metrics;
   bool jerk_metrics;
-  bool keep_screen_on;
   bool lateral_tuning_metrics;
   bool lead_metrics;
   bool left_curve;
@@ -189,6 +179,7 @@ typedef struct UIScene {
   bool onroad_distance_button;
   bool parked;
   bool pedals_on_ui;
+  bool radar_tracks;
   bool radarless_model;
   bool rainbow_path;
   bool random_events;
@@ -200,6 +191,7 @@ typedef struct UIScene {
   bool show_blind_spot;
   bool show_fps;
   bool show_speed_limit_offset;
+  bool show_speed_limits;
   bool show_stopping_point;
   bool show_stopping_point_metrics;
   bool sidebar_metrics;
@@ -256,33 +248,44 @@ typedef struct UIScene {
   float speed_limit_overridden_speed;
   float steer;
   float unconfirmed_speed_limit;
+  float upcoming_maneuver_distance;
   float upcoming_speed_limit;
-  float v_cruise_diff;
   float vtsc_speed;
-  float desired_acceleration;
 
   int bearing_deg;
   int camera_view;
-  int conditional_limit;
-  int conditional_limit_lead;
   int conditional_status;
   int desired_follow;
   int driver_camera_timer;
   int map_style;
-  int minimum_lane_change_speed;
   int model_length;
-  int obstacle_distance;
-  int obstacle_distance_stock;
   int screen_brightness = -1;
   int screen_brightness_onroad = -1;
   int screen_timeout;
   int screen_timeout_onroad;
   int started_timer;
   int steering_angle_deg;
-  int stopped_equivalence;
   int tethering_config;
 
   std::string speed_limit_source;
+
+  std::vector<RadarTrackData> live_radar_tracks;
+
+  QColor lane_lines_color;
+  QColor lead_marker_color;
+  QColor path_color;
+  QColor path_edges_color;
+  QColor sidebar_color1;
+  QColor sidebar_color2;
+  QColor sidebar_color3;
+
+  QJsonObject frogpilot_toggles;
+
+  QPolygonF track_adjacent_vertices[6];
+  QPolygonF track_edge_vertices;
+
+  QString model;
+  QString model_name;
 
 } UIScene;
 
@@ -312,6 +315,8 @@ public:
   QTransform car_space_transform;
 
   // FrogPilot variables
+  Params params_memory{"/dev/shm/params"};
+
   WifiManager *wifi = nullptr;
 
 signals:
@@ -323,6 +328,8 @@ signals:
   // FrogPilot signals
   void driveRated();
   void reviewModel();
+  void themeUpdated();
+  void togglesUpdated();
 
 private slots:
   void update();
@@ -331,9 +338,6 @@ private:
   QTimer *timer;
   bool started_prev = false;
   PrimeType prime_type = PrimeType::UNKNOWN;
-
-  // FrogPilot variables
-  Params paramsMemory{"/dev/shm/params"};
 };
 
 UIState *uiState();
@@ -386,3 +390,5 @@ void update_line_data(const UIState *s, const cereal::XYZTData::Reader &line,
 
 // FrogPilot functions
 void ui_update_frogpilot_params(UIState *s);
+void ui_update_theme(UIState *s);
+void update_radar_tracks(UIState *s, const capnp::List<cereal::LiveTracks>::Reader &tracks_msg, const cereal::XYZTData::Reader &line);

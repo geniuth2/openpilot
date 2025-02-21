@@ -129,6 +129,17 @@ FrogPilotDataPanel::FrogPilotDataPanel(FrogPilotSettingsWindow *parent) : FrogPi
     QDir backupDir("/data/backups");
     QStringList backupNames = backupDir.entryList(QDir::Dirs | QDir::Files | QDir::NoDotAndDotDot, QDir::Name).filter(QRegularExpression("^(?!.*_in_progress$).*$"));
 
+    QMap<QString, QString> backupFriendlyMap;
+    QRegularExpression autoRegex("^(.*)_(\\d{4}-\\d{2}-\\d{2})_auto(?:\\..*)?$");
+    for (const QString &name : backupNames) {
+      QString friendly = name;
+      QRegularExpressionMatch match = autoRegex.match(name);
+      if (match.hasMatch()) {
+        friendly = match.captured(1) + ": " + match.captured(2);
+      }
+      backupFriendlyMap.insert(friendly, name);
+    }
+
     if (id == 0) {
       QString nameSelection = InputDialog::getText(tr("Name your backup"), this, "", false, 1);
       if (!nameSelection.isEmpty()) {
@@ -174,8 +185,9 @@ FrogPilotDataPanel::FrogPilotDataPanel(FrogPilotSettingsWindow *parent) : FrogPi
       }
 
     } else if (id == 1) {
-      QString selection = MultiOptionDialog::getSelection(tr("Select a backup to delete"), backupNames, "", this);
-      if (!selection.isEmpty()) {
+      QString selectionFriendly = MultiOptionDialog::getSelection(tr("Select a backup to delete"), backupFriendlyMap.keys(), "", this);
+      if (!selectionFriendly.isEmpty()) {
+        QString selection = backupFriendlyMap.value(selectionFriendly);
         if (ConfirmationDialog::confirm(tr("Are you sure you want to delete this backup?"), tr("Delete"), this)) {
           std::thread([=]() {
             frogpilotBackupBtn->setVisibleButton(0, false);
@@ -233,8 +245,9 @@ FrogPilotDataPanel::FrogPilotDataPanel(FrogPilotSettingsWindow *parent) : FrogPi
       }
 
     } else if (id == 3) {
-      QString selection = MultiOptionDialog::getSelection(tr("Select a restore point"), backupNames, "", this);
-      if (!selection.isEmpty()) {
+      QString selectionFriendly = MultiOptionDialog::getSelection(tr("Select a restore point"), backupFriendlyMap.keys(), "", this);
+      if (!selectionFriendly.isEmpty()) {
+        QString selection = backupFriendlyMap.value(selectionFriendly);
         if (ConfirmationDialog::confirm(tr("Are you sure you want to restore this version of FrogPilot?"), tr("Restore"), this)) {
           std::thread([=]() {
             frogpilotBackupBtn->setEnabled(false);
@@ -282,6 +295,17 @@ FrogPilotDataPanel::FrogPilotDataPanel(FrogPilotSettingsWindow *parent) : FrogPi
     QDir backupDir("/data/toggle_backups");
     QStringList backupNames = backupDir.entryList(QDir::Dirs | QDir::Files | QDir::NoDotAndDotDot, QDir::Name).filter(QRegularExpression("^(?!.*_in_progress$).*$"));
 
+    QMap<QString, QString> backupFriendlyMap;
+    QRegularExpression autoRegex("^(\\d{4}-\\d{2}-\\d{2})_(\\d{1,2}-\\d{2}[ap]m)_auto(?:\\..*)?$");
+    for (const QString &name : backupNames) {
+      QString friendly = name;
+      QRegularExpressionMatch match = autoRegex.match(name);
+      if (match.hasMatch()) {
+        friendly = match.captured(1) + ": " + match.captured(2);
+      }
+      backupFriendlyMap.insert(friendly, name);
+    }
+
     if (id == 0) {
       QString nameSelection = InputDialog::getText(tr("Name your backup"), this, "", false, 1);
       if (!nameSelection.isEmpty()) {
@@ -319,8 +343,9 @@ FrogPilotDataPanel::FrogPilotDataPanel(FrogPilotSettingsWindow *parent) : FrogPi
       }
 
     } else if (id == 1) {
-      QString selection = MultiOptionDialog::getSelection(tr("Select a backup to delete"), backupNames, "", this);
-      if (!selection.isEmpty()) {
+      QString selectionFriendly = MultiOptionDialog::getSelection(tr("Select a backup to delete"), backupFriendlyMap.keys(), "", this);
+      if (!selectionFriendly.isEmpty()) {
+        QString selection = backupFriendlyMap.value(selectionFriendly);
         if (ConfirmationDialog::confirm(tr("Are you sure you want to delete this backup?"), tr("Delete"), this)) {
           std::thread([=]() {
             toggleBackupBtn->setVisibleButton(0, false);
@@ -374,8 +399,9 @@ FrogPilotDataPanel::FrogPilotDataPanel(FrogPilotSettingsWindow *parent) : FrogPi
       }
 
     } else if (id == 3) {
-      QString selection = MultiOptionDialog::getSelection(tr("Select a restore point"), backupNames, "", this);
-      if (!selection.isEmpty()) {
+      QString selectionFriendly = MultiOptionDialog::getSelection(tr("Select a restore point"), backupFriendlyMap.keys(), "", this);
+      if (!selectionFriendly.isEmpty()) {
+        QString selection = backupFriendlyMap.value(selectionFriendly);
         if (ConfirmationDialog::confirm(tr("Are you sure you want to restore this toggle backup?"), tr("Restore"), this)) {
           std::thread([=]() {
             toggleBackupBtn->setEnabled(false);

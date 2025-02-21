@@ -33,6 +33,8 @@ def cycle_alerts(duration=200, is_metric=False):
     (EventName.preDriverDistracted, ET.WARNING),
     (EventName.promptDriverDistracted, ET.WARNING),
     (EventName.driverDistracted, ET.WARNING),
+    (EventName.slowingDownSpeedSound, ET.WARNING),
+
   ]
 
   # debug alerts

@@ -8,29 +8,6 @@
 
 #include "selfdrive/frogpilot/screenrecorder/screenrecorder.h"
 
-class Compass : public QWidget {
-  Q_OBJECT
-
-public:
-  explicit Compass(QWidget *parent = 0);
-  void updateState(const UIScene &scene);
-
-private:
-  void initializeStaticElements();
-  void paintEvent(QPaintEvent *event) override;
-
-  int bearingDeg;
-  int circleOffset;
-  int compassSize;
-  int degreeLabelOffset;
-  int innerCompass;
-  int x;
-  int y;
-
-  QPixmap compassInnerImg;
-  QPixmap staticElements;
-};
-
 class PedalIcons : public QWidget {
   Q_OBJECT
 
@@ -64,9 +41,11 @@ public:
   MapSettingsButton *map_settings_btn;
 
   // FrogPilot variables
-  MapSettingsButton *map_settings_btn_bottom;
-
   QRect newSpeedLimitRect;
+
+  QString accelerationUnit;
+
+  float accelerationConversion;
 
 private:
   void drawText(QPainter &p, int x, int y, const QString &text, int alpha = 255, bool overridePen = false);
@@ -94,8 +73,9 @@ private:
   bool wide_cam_requested = false;
 
   // FrogPilot widgets
-  void drawLeadInfo(QPainter &p);
-  void drawStatusBar(QPainter &p);
+  void drawCEMStatus(QPainter &p);
+  void drawRadarTracks(QPainter &p);
+  void drawRoadName(QPainter &p);
   void drawTurnSignals(QPainter &p);
   void initializeFrogPilotWidgets();
   void paintFrogPilotWidgets(QPainter &painter);
@@ -103,24 +83,31 @@ private:
   void updateSignals();
 
   // FrogPilot variables
-  Params paramsMemory{"/dev/shm/params"};
+  Params params_memory{"/dev/shm/params"};
 
-  Compass *compass_img;
   DistanceButton *distance_btn;
   PedalIcons *pedal_icons;
   ScreenRecorder *screenRecorder;
 
-  QHBoxLayout *bottom_layout;
-
+  QPixmap chillModeIcon;
+  QPixmap curveIcon;
   QPixmap curveSpeedLeftIcon;
   QPixmap curveSpeedRightIcon;
   QPixmap dashboardIcon;
+  QPixmap experimentalModeIcon;
+  QPixmap leadIcon;
+  QPixmap lightIcon;
   QPixmap mapDataIcon;
   QPixmap navigationIcon;
+  QPixmap speedIcon;
   QPixmap stopSignImg;
+  QPixmap turnIcon;
   QPixmap upcomingMapsIcon;
 
-  QString accelerationUnit;
+  QPoint dmIconPosition;
+
+  QRect leadTextRect;
+
   QString leadDistanceUnit;
   QString leadSpeedUnit;
   QString signalStyle;
@@ -130,10 +117,10 @@ private:
   QVector<QPixmap> blindspotImages;
   QVector<QPixmap> signalImages;
 
-  bool alwaysOnLateralActive;
   bool bigMapOpen;
   bool blindSpotLeft;
   bool blindSpotRight;
+  bool cemStatus;
   bool compass;
   bool experimentalMode;
   bool hideCSCUI;
@@ -147,8 +134,6 @@ private:
   bool mtscEnabled;
   bool onroadDistanceButton;
   bool roadNameUI;
-  bool showAlwaysOnLateralStatusBar;
-  bool showConditionalExperimentalStatusBar;
   bool showSLCOffset;
   bool slcOverridden;
   bool speedLimitChanged;
@@ -163,14 +148,9 @@ private:
   bool vtscControllingCurve;
   bool vtscEnabled;
 
-  double currentAcceleration;
-
-  float accelerationConversion;
   float dashboardSpeedLimit;
   float distanceConversion;
   float laneDetectionWidth;
-  float lead_x;
-  float lead_y;
   float mapsSpeedLimit;
   float mtscSpeed;
   float navigationSpeedLimit;
@@ -179,32 +159,28 @@ private:
   float speedConversionMetrics;
   float unconfirmedSpeedLimit;
   float upcomingSpeedLimit;
-  float vCruiseDiff;
   float vtscSpeed;
 
   int alertHeight;
   int animationFrameIndex;
   int cameraView;
-  int conditionalSpeed;
-  int conditionalSpeedLead;
   int conditionalStatus;
   int desiredFollow;
   int modelLength;
-  int obstacleDistance;
-  int obstacleDistanceStock;
   int signalAnimationLength;
   int signalHeight;
   int signalMovement;
   int signalWidth;
   int standstillDuration;
-  int statusBarHeight;
-  int stoppedEquivalence;
   int totalFrames;
 
   std::string speedLimitSource;
 
-  inline QColor blueColor(int alpha = 255) { return QColor(0, 150, 255, alpha); }
+  inline QColor blueColor(int alpha = 255) { return QColor(0, 0, 255, alpha); }
   inline QColor greenColor(int alpha = 242) { return QColor(23, 134, 68, alpha); }
+  inline QColor orangeColor(int alpha = 255) { return QColor(255, 165, 0, alpha); }
+  inline QColor purpleColor(int alpha = 255) { return QColor(128, 0, 128, alpha); }
+  inline QColor yellowColor(int alpha = 255) { return QColor(255, 255, 0, alpha); }
 
 protected:
   // NDA neokii
