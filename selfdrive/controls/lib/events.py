@@ -532,7 +532,7 @@ EVENTS: dict[int, dict[str, Alert | AlertCallbackType]] = {
       "속도를 줄입니다.",
       "Slowing Down",
       AlertStatus.normal, AlertSize.small,
-      Priority.HIGH, VisualAlert.steerRequired, AudibleAlert.speedDown, 2.),
+      Priority.HIGH, VisualAlert.steerRequired, AudibleAlert.promptDistracted, 2.),
   },
 
   EventName.preDriverUnresponsive: {
