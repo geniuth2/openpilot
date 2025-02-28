@@ -1,8 +1,3 @@
-#include <filesystem>
-#include <iostream>
-
-#include "selfdrive/ui/qt/widgets/scrollview.h"
-
 #include "selfdrive/frogpilot/navigation/ui/maps_settings.h"
 #include "selfdrive/frogpilot/navigation/ui/primeless_settings.h"
 #include "selfdrive/frogpilot/ui/qt/offroad/data_settings.h"
@@ -18,16 +13,16 @@
 #include "selfdrive/frogpilot/ui/qt/offroad/visual_settings.h"
 
 bool checkNNFFLogFileExists(const std::string &carFingerprint) {
-  const std::filesystem::path latModelsPath("../car/torque_data/lat_models");
-
-  if (!std::filesystem::exists(latModelsPath)) {
-    std::cerr << "Lat models directory does not exist." << std::endl;
-    return false;
+  static std::vector<std::string> files;
+  if (files.empty()) {
+    for (std::filesystem::directory_entry entry : std::filesystem::directory_iterator("../car/torque_data/lat_models")) {
+      files.emplace_back(entry.path().filename().stem().string());
+    }
   }
 
-  for (const std::filesystem::directory_entry &entry : std::filesystem::directory_iterator(latModelsPath)) {
-    if (entry.path().filename().string().rfind(carFingerprint, 0) == 0) {
-      std::cout << "NNFF supports fingerprint: " << entry.path().filename() << std::endl;
+  for (const std::string &file : files) {
+    if (file.rfind(carFingerprint, 0) == 0) {
+      std::cout << "NNFF supports fingerprint: " << file << std::endl;
       return true;
     }
   }
@@ -35,100 +30,134 @@ bool checkNNFFLogFileExists(const std::string &carFingerprint) {
   return false;
 }
 
+void FrogPilotSettingsWindow::createPanelButtons(FrogPilotListWidget *list) {
+  FrogPilotDevicePanel *frogpilotDevicePanel = new FrogPilotDevicePanel(this);
+  FrogPilotLateralPanel *frogpilotLateralPanel = new FrogPilotLateralPanel(this);
+  FrogPilotLongitudinalPanel *frogpilotLongitudinalPanel = new FrogPilotLongitudinalPanel(this);
+  FrogPilotMapsPanel *frogpilotMapsPanel = new FrogPilotMapsPanel(this);
+  FrogPilotModelPanel *frogpilotModelPanel = new FrogPilotModelPanel(this);
+  FrogPilotPrimelessPanel *frogpilotPrimelessPanel = new FrogPilotPrimelessPanel(this);
+  FrogPilotSoundsPanel *frogpilotSoundsPanel = new FrogPilotSoundsPanel(this);
+  FrogPilotThemesPanel *frogpilotThemesPanel = new FrogPilotThemesPanel(this);
+  FrogPilotVehiclesPanel *frogpilotVehiclesPanel = new FrogPilotVehiclesPanel(this);
+  FrogPilotVisualsPanel *frogpilotVisualsPanel = new FrogPilotVisualsPanel(this);
+
+  QObject::connect(frogpilotDevicePanel, &FrogPilotDevicePanel::openParentToggle, this, &FrogPilotSettingsWindow::openParentToggle);
+  QObject::connect(frogpilotLateralPanel, &FrogPilotLateralPanel::openParentToggle, this, &FrogPilotSettingsWindow::openParentToggle);
+  QObject::connect(frogpilotLongitudinalPanel, &FrogPilotLongitudinalPanel::openParentToggle, this, &FrogPilotSettingsWindow::openParentToggle);
+  QObject::connect(frogpilotLongitudinalPanel, &FrogPilotLongitudinalPanel::openSubParentToggle, this, &FrogPilotSettingsWindow::openSubParentToggle);
+  QObject::connect(frogpilotMapsPanel, &FrogPilotMapsPanel::openMapSelection, this, &FrogPilotSettingsWindow::openMapSelection);
+  QObject::connect(frogpilotModelPanel, &FrogPilotModelPanel::openParentToggle, this, &FrogPilotSettingsWindow::openParentToggle);
+  QObject::connect(frogpilotModelPanel, &FrogPilotModelPanel::openSubParentToggle, this, &FrogPilotSettingsWindow::openSubParentToggle);
+  QObject::connect(frogpilotPrimelessPanel, &FrogPilotPrimelessPanel::closeMapBoxInstructions, this, &FrogPilotSettingsWindow::closeMapBoxInstructions);
+  QObject::connect(frogpilotPrimelessPanel, &FrogPilotPrimelessPanel::openMapBoxInstructions, this, &FrogPilotSettingsWindow::openMapBoxInstructions);
+  QObject::connect(frogpilotSoundsPanel, &FrogPilotSoundsPanel::openParentToggle, this, &FrogPilotSettingsWindow::openParentToggle);
+  QObject::connect(frogpilotThemesPanel, &FrogPilotThemesPanel::openParentToggle, this, &FrogPilotSettingsWindow::openParentToggle);
+  QObject::connect(frogpilotVehiclesPanel, &FrogPilotVehiclesPanel::openParentToggle, this, &FrogPilotSettingsWindow::openParentToggle);
+  QObject::connect(frogpilotVisualsPanel, &FrogPilotVisualsPanel::openParentToggle, this, &FrogPilotSettingsWindow::openParentToggle);
+  QObject::connect(frogpilotVisualsPanel, &FrogPilotVisualsPanel::openSubParentToggle, this, &FrogPilotSettingsWindow::openSubParentToggle);
+
+  std::vector<std::vector<std::tuple<QString, QWidget*>>> panelButtons = {
+    {{tr("MANAGE"), frogpilotSoundsPanel}},
+    {{tr("DRIVING MODEL"), frogpilotModelPanel}, {tr("GAS / BRAKE"), frogpilotLongitudinalPanel}, {tr("STEERING"), frogpilotLateralPanel}},
+    {{tr("MAP DATA"), frogpilotMapsPanel}, {tr("PRIMELESS NAVIGATION"), frogpilotPrimelessPanel}},
+    {{tr("DATA"), new FrogPilotDataPanel(this)}, {tr("DEVICE CONTROLS"), frogpilotDevicePanel}, {tr("UTILITIES"), new FrogPilotUtilitiesPanel(this)}},
+    {{tr("APPEARANCE"), frogpilotVisualsPanel}, {tr("THEME"), frogpilotThemesPanel}},
+    {{tr("MANAGE"), frogpilotVehiclesPanel}}
+  };
+
+  std::vector<std::tuple<QString, QString, QString>> panelInfo = {
+    {tr("Alerts and Sounds"), tr("Manage FrogPilot's alerts and sounds."), "../frogpilot/assets/toggle_icons/icon_sound.png"},
+    {tr("Driving Controls"), tr("Manage FrogPilot's features that affect acceleration, braking, and steering."), "../frogpilot/assets/toggle_icons/icon_steering.png"},
+    {tr("Navigation"), tr("Manage map data to be used with 'Curve Speed Control' and 'Speed Limit Controller' and setup 'Navigate On openpilot (NOO)' without a comma prime subscription."), "../frogpilot/assets/toggle_icons/icon_map.png"},
+    {tr("System Management"), tr("Manage the device's internal settings along with other tools and utilities to maintain and troubleshoot FrogPilot."), "../frogpilot/assets/toggle_icons/icon_system.png"},
+    {tr("Theme and Appearance"), tr("Manage openpilot's theme and onroad widgets."), "../frogpilot/assets/toggle_icons/icon_display.png"},
+    {tr("Vehicle Controls"), tr("Manage vehicle-specific settings."), "../frogpilot/assets/toggle_icons/icon_vehicle.png"}
+  };
+
+  for (size_t i = 0; i < panelInfo.size(); ++i) {
+    const QString &title = std::get<0>(panelInfo[i]);
+    const QString &description = std::get<1>(panelInfo[i]);
+    const QString &icon = std::get<2>(panelInfo[i]);
+
+    const std::vector<std::tuple<QString, QWidget*>> &widgetLabels = panelButtons[i];
+
+    std::vector<QString> labels;
+    std::vector<QWidget*> widgets;
+
+    for (size_t j = 0; j < widgetLabels.size(); ++j) {
+      labels.push_back(std::get<0>(widgetLabels[j]));
+
+      QWidget *panel = std::get<1>(widgetLabels[j]);
+      panel->setContentsMargins(50, 25, 50, 25);
+
+      ScrollView *panelFrame = new ScrollView(panel, this);
+      mainLayout->addWidget(panelFrame);
+      widgets.push_back(panelFrame);
+    }
+
+    FrogPilotButtonsControl *panelButton = new FrogPilotButtonsControl(title, description, icon, labels);
+    if (title == tr("Driving Controls")) drivingPanelButtons = panelButton;
+    if (title == tr("Navigation")) navigationPanelButtons = panelButton;
+    if (title == tr("System Management")) systemPanelButtons = panelButton;
+
+    QObject::connect(panelButton, &FrogPilotButtonsControl::buttonClicked, [this, widgets](int id) {
+      mainLayout->setCurrentWidget(widgets[id]);
+      panelOpen = true;
+      openPanel();
+    });
+
+    list->addItem(panelButton);
+  }
+}
+
 FrogPilotSettingsWindow::FrogPilotSettingsWindow(SettingsWindow *parent) : QFrame(parent) {
   mainLayout = new QStackedLayout(this);
 
-  frogpilotSettingsWidget = new QWidget(this);
-  QVBoxLayout *frogpilotSettingsLayout = new QVBoxLayout(frogpilotSettingsWidget);
-  frogpilotSettingsLayout->setContentsMargins(50, 25, 50, 25);
+  QWidget *frogpilotWidget = new QWidget(this);
+  QVBoxLayout *frogpilotLayout = new QVBoxLayout(frogpilotWidget);
+  frogpilotLayout->setContentsMargins(50, 25, 50, 25);
+  frogpilotWidget->setLayout(frogpilotLayout);
 
-  FrogPilotListWidget *list = new FrogPilotListWidget(frogpilotSettingsWidget);
+  frogpilotPanel = new ScrollView(frogpilotWidget, this);
+  mainLayout->addWidget(frogpilotPanel);
+  frogpilotPanel->setWidget(frogpilotWidget);
 
-  std::vector<QString> toggle_presets{tr("Basic"), tr("Standard"), tr("Advanced")};
-  ButtonParamControl *toggle_preset = new ButtonParamControl("CustomizationLevel", tr("Customization Level"),
-                                            tr("Choose your preferred customization level. 'Standard' is recommended for most users, offering a balanced experience and automatically managing more 'Advanced' features,"
-                                               " while 'Basic' is designed for those new to customization or seeking simplicity."),
-                                            "../frogpilot/assets/toggle_icons/icon_customization.png",
-                                            toggle_presets);
-  QObject::connect(toggle_preset, &ButtonParamControl::buttonClicked, this, &FrogPilotSettingsWindow::updatePanelVisibility);
-  QObject::connect(toggle_preset, &ButtonParamControl::buttonClicked, this, &updateFrogPilotToggles);
-  list->addItem(toggle_preset);
+  FrogPilotListWidget *list = new FrogPilotListWidget(this);
+  frogpilotLayout->addWidget(list);
 
-  FrogPilotDevicePanel *frogpilotDevicePanel = new FrogPilotDevicePanel(this);
-  QObject::connect(frogpilotDevicePanel, &FrogPilotDevicePanel::openParentToggle, this, &FrogPilotSettingsWindow::openParentToggle);
+  std::vector<QString> togglePresets{tr("Minimal"), tr("Standard"), tr("Advanced"), tr("Developer")};
+  FrogPilotButtonsControl *togglePreset = new FrogPilotButtonsControl(tr("Tuning Level"),
+                                          tr("Select a tuning level that suits your preferences:\n\n"
+                                          "Minimal - Ideal for those who prefer simplicity or ease of use\n"
+                                          "Standard - Recommended for most users for a balanced experience\n"
+                                          "Advanced - Unlocks fine-tuning controls for more experienced users\n"
+                                          "Developer - Unlocks highly customizable settings for seasoned enthusiasts"),
+                                          "../frogpilot/assets/toggle_icons/icon_customization.png",
+                                          togglePresets, true);
 
-  FrogPilotLateralPanel *frogpilotLateralPanel = new FrogPilotLateralPanel(this);
-  QObject::connect(frogpilotLateralPanel, &FrogPilotLateralPanel::openParentToggle, this, &FrogPilotSettingsWindow::openParentToggle);
+  int timeTo100FPHours = 100 - (paramsTracking.getInt("FrogPilotMinutes") / 60);
+  int timeTo250OPHours = 250 - (params.getInt("openpilotMinutes") / 60);
+  togglePreset->setEnabledButtons(3, timeTo100FPHours <= 0 || timeTo250OPHours <= 0);
 
-  FrogPilotLongitudinalPanel *frogpilotLongitudinalPanel = new FrogPilotLongitudinalPanel(this);
-  QObject::connect(frogpilotLongitudinalPanel, &FrogPilotLongitudinalPanel::openParentToggle, this, &FrogPilotSettingsWindow::openParentToggle);
-  QObject::connect(frogpilotLongitudinalPanel, &FrogPilotLongitudinalPanel::openSubParentToggle, this, &FrogPilotSettingsWindow::openSubParentToggle);
+  QObject::connect(togglePreset, &FrogPilotButtonsControl::buttonClicked, [this](int id) {
+    tuningLevel = id;
+    if (id == 3) {
+      ConfirmationDialog::alert(tr("WARNING: This unlocks some potentially dangerous settings that can DRASTICALLY alter your driving experience!"), this);
+    }
+    params.putInt("TuningLevel", tuningLevel);
+    updateVariables();
+  });
 
-  FrogPilotModelPanel *frogpilotModelPanel = new FrogPilotModelPanel(this);
-  QObject::connect(frogpilotModelPanel, &FrogPilotModelPanel::openParentToggle, this, &FrogPilotSettingsWindow::openParentToggle);
-  QObject::connect(frogpilotModelPanel, &FrogPilotModelPanel::openSubParentToggle, this, &FrogPilotSettingsWindow::openSubParentToggle);
+  QObject::connect(togglePreset, &FrogPilotButtonsControl::disabledButtonClicked, [this](int id) {
+    if (id == 3) {
+      ConfirmationDialog::alert(tr("The 'Developer' preset is only available for users with either over 100 hours on FrogPilot, or 250 hours with openpilot."), this);
+    }
+  });
+  togglePreset->setCheckedButton(params.getInt("TuningLevel"));
+  list->addItem(togglePreset);
 
-  FrogPilotMapsPanel *frogpilotMapsPanel = new FrogPilotMapsPanel(this);
-  QObject::connect(frogpilotMapsPanel, &FrogPilotMapsPanel::openMapSelection, this, &FrogPilotSettingsWindow::openMapSelection);
-
-  FrogPilotPrimelessPanel *frogpilotPrimelessPanel = new FrogPilotPrimelessPanel(this);
-  QObject::connect(frogpilotPrimelessPanel, &FrogPilotPrimelessPanel::closeMapBoxInstructions, this, &FrogPilotSettingsWindow::closeMapBoxInstructions);
-  QObject::connect(frogpilotPrimelessPanel, &FrogPilotPrimelessPanel::openMapBoxInstructions, this, &FrogPilotSettingsWindow::openMapBoxInstructions);
-
-  FrogPilotSoundsPanel *frogpilotSoundsPanel = new FrogPilotSoundsPanel(this);
-  QObject::connect(frogpilotSoundsPanel, &FrogPilotSoundsPanel::openParentToggle, this, &FrogPilotSettingsWindow::openParentToggle);
-
-  FrogPilotThemesPanel *frogpilotThemesPanel = new FrogPilotThemesPanel(this);
-  QObject::connect(frogpilotThemesPanel, &FrogPilotThemesPanel::openParentToggle, this, &FrogPilotSettingsWindow::openParentToggle);
-
-  FrogPilotVisualsPanel *frogpilotVisualsPanel = new FrogPilotVisualsPanel(this);
-  QObject::connect(frogpilotVisualsPanel, &FrogPilotVisualsPanel::openParentToggle, this, &FrogPilotSettingsWindow::openParentToggle);
-
-  std::vector<std::pair<QString, std::vector<QWidget*>>> panels = {
-    {tr("Alerts and Sounds"), {frogpilotSoundsPanel}},
-    {tr("Driving Controls"), {frogpilotModelPanel, frogpilotLongitudinalPanel, frogpilotLateralPanel}},
-    {tr("Navigation"), {frogpilotMapsPanel, frogpilotPrimelessPanel}},
-    {tr("System Management"), {new FrogPilotDataPanel(this), frogpilotDevicePanel, new UtilitiesPanel(this)}},
-    {tr("Theme and Appearance"), {frogpilotVisualsPanel, frogpilotThemesPanel}},
-    {tr("Vehicle Controls"), {new FrogPilotVehiclesPanel(this)}}
-  };
-
-  std::vector<QString> icons = {
-    "../frogpilot/assets/toggle_icons/icon_sound.png",
-    "../frogpilot/assets/toggle_icons/icon_steering.png",
-    "../frogpilot/assets/toggle_icons/icon_map.png",
-    "../frogpilot/assets/toggle_icons/icon_system.png",
-    "../frogpilot/assets/toggle_icons/icon_display.png",
-    "../frogpilot/assets/toggle_icons/icon_vehicle.png",
-  };
-
-  std::vector<QString> descriptions = {
-    tr("Options to customize FrogPilot's sound alerts and notifications."),
-    tr("FrogPilot features that impact acceleration, braking, and steering."),
-    tr("Map data downloader and 'Navigate On openpilot (NOO)' settings."),
-    tr("Tools and system utilities used to maintain and troubleshoot FrogPilot."),
-    tr("Options for customizing FrogPilot's themes, UI appearance, and onroad widgets."),
-    tr("Vehicle-specific settings and configurations for supported makes and models.")
-  };
-
-  std::vector<std::vector<QString>> buttonLabels = {
-    {tr("MANAGE")},
-    {tr("DRIVING MODEL"), tr("GAS / BRAKE"), tr("STEERING")},
-    {tr("MAP DATA"), tr("PRIMELESS NAVIGATION")},
-    {tr("DATA"), tr("DEVICE"), tr("UTILITIES")},
-    {tr("APPEARANCE"), tr("THEME")},
-    {tr("MANAGE")}
-  };
-
-  for (size_t i = 0; i < panels.size(); ++i) {
-    addPanelControl(list, panels[i].first, descriptions[i], buttonLabels[i], icons[i], panels[i].second, panels[i].first);
-  }
-
-  frogpilotSettingsLayout->addWidget(new ScrollView(list, frogpilotSettingsWidget));
-  frogpilotSettingsLayout->addStretch(1);
-
-  mainLayout->addWidget(frogpilotSettingsWidget);
-  mainLayout->setCurrentWidget(frogpilotSettingsWidget);
+  createPanelButtons(list);
 
   QObject::connect(parent, &SettingsWindow::closeMapBoxInstructions, this, &FrogPilotSettingsWindow::closeMapBoxInstructions);
   QObject::connect(parent, &SettingsWindow::closeMapSelection, this, &FrogPilotSettingsWindow::closeMapSelection);
@@ -136,62 +165,48 @@ FrogPilotSettingsWindow::FrogPilotSettingsWindow(SettingsWindow *parent) : QFram
   QObject::connect(parent, &SettingsWindow::closeParentToggle, this, &FrogPilotSettingsWindow::closeParentToggle);
   QObject::connect(parent, &SettingsWindow::closeSubParentToggle, this, &FrogPilotSettingsWindow::closeSubParentToggle);
   QObject::connect(parent, &SettingsWindow::updateMetric, this, &FrogPilotSettingsWindow::updateMetric);
-  QObject::connect(uiState(), &UIState::offroadTransition, this, &FrogPilotSettingsWindow::updateCarVariables);
+  QObject::connect(uiState(), &UIState::offroadTransition, this, &FrogPilotSettingsWindow::updateVariables);
+  QObject::connect(uiState(), &UIState::uiUpdate, this, &FrogPilotSettingsWindow::updateState);
+
+  frogpilotToggleLevels = QJsonDocument::fromJson(params_memory.get("FrogPilotTuningLevels", true).c_str()).object();
+  tuningLevel = params.getInt("TuningLevel");
 
   closeParentToggle();
+  updateMetric(params.getBool("IsMetric"), true);
+  updateVariables();
 }
 
-void FrogPilotSettingsWindow::showEvent(QShowEvent *event) {
-  updatePanelVisibility();
+void FrogPilotSettingsWindow::hideEvent(QHideEvent *event) {
+  closePanel();
 }
 
 void FrogPilotSettingsWindow::closePanel() {
-  QWidget *currentWidget = mainLayout->currentWidget();
-  if (currentWidget != frogpilotSettingsWidget) {
-    mainLayout->removeWidget(currentWidget);
-  }
-
-  uiState()->scene.keep_screen_on = false;
+  mainLayout->setCurrentWidget(frogpilotPanel);
+  panelOpen = false;
+  updateFrogPilotToggles();
 }
 
-void FrogPilotSettingsWindow::updatePanelVisibility() {
-  customizationLevel = params.getInt("CustomizationLevel");
-  disableOpenpilotLongitudinal = params.getBool("DisableOpenpilotLongitudinal");
+void FrogPilotSettingsWindow::updateState() {
+  UIState *s = uiState();
+  UIScene &scene = s->scene;
 
-  if ((hasOpenpilotLongitudinal && !disableOpenpilotLongitudinal) || customizationLevel != 0) {
-    drivingButton->setVisible(true);
-    drivingButton->setVisibleButton(0, customizationLevel == 2);
-    drivingButton->setVisibleButton(1, hasOpenpilotLongitudinal && !disableOpenpilotLongitudinal);
-    drivingButton->setVisibleButton(2, customizationLevel != 0);
-    update();
-  } else {
-    drivingButton->setVisible(false);
-    update();
-  }
-  navigationButton->setVisibleButton(1, !uiState()->hasPrime());
-  systemButton->setVisibleButton(1, customizationLevel != 0);
-
-  mainLayout->setCurrentWidget(frogpilotSettingsWidget);
+  scene.frogpilot_panel_active = panelOpen && keepScreenOn;
 }
 
-void FrogPilotSettingsWindow::updateCarVariables() {
-  std::thread([this] {
-    std::string carParams = params.get("CarParamsPersistent");
-    if (carParams.empty()) {
-      carParams = params.get("CarParams", true);
-    }
-
+void FrogPilotSettingsWindow::updateVariables() {
+  std::string carParams = params.get("CarParamsPersistent");
+  if (!carParams.empty()) {
     AlignedBuffer aligned_buf;
     capnp::FlatArrayMessageReader cmsg(aligned_buf.align(carParams.data(), carParams.size()));
     cereal::CarParams::Reader CP = cmsg.getRoot<cereal::CarParams>();
     cereal::CarParams::SafetyModel safetyModel = CP.getSafetyConfigs()[0].getSafetyModel();
 
     std::string carFingerprint = CP.getCarFingerprint();
-    std::string carModel = CP.getCarName();
+    std::string carMake = CP.getCarName();
 
-    hasAutoTune = (carModel == "hyundai" || carModel == "toyota") && CP.getLateralTuning().which() == cereal::CarParams::LateralTuning::TORQUE;
+    hasAutoTune = (carMake == "hyundai" || carMake == "toyota") && CP.getLateralTuning().which() == cereal::CarParams::LateralTuning::TORQUE;
     hasBSM = CP.getEnableBsm();
-    hasDashSpeedLimits = carModel == "hyundai" || carModel == "toyota";
+    hasDashSpeedLimits = carMake == "hyundai" || carMake == "toyota";
     hasExperimentalOpenpilotLongitudinal = CP.getExperimentalLongitudinalAvailable();
     hasNNFFLog = checkNNFFLogFileExists(carFingerprint);
     hasOpenpilotLongitudinal = hasLongitudinalControl(CP);
@@ -199,54 +214,50 @@ void FrogPilotSettingsWindow::updateCarVariables() {
     hasRadar = !CP.getRadarUnavailable();
     hasSNG = CP.getMinEnableSpeed() <= 0;
     isBolt = carFingerprint == "CHEVROLET_BOLT_CC" || carFingerprint == "CHEVROLET_BOLT_EUV";
-    isGM = carModel == "gm";
-    isGMPCMCruise = CP.getCarName() == "gm" && CP.getPcmCruise();
-    isHKGCanFd = carModel == "hyundai" && safetyModel == cereal::CarParams::SafetyModel::HYUNDAI_CANFD;
-    isImpreza = carFingerprint == "SUBARU_IMPREZA";
+    isGM = carMake == "gm";
+    isHKG = carMake == "hyundai";
+    isHKGCanFd = isHKG && safetyModel == cereal::CarParams::SafetyModel::HYUNDAI_CANFD;
     isPIDCar = CP.getLateralTuning().which() == cereal::CarParams::LateralTuning::PID;
-    isSubaru = carModel == "subaru";
-    isToyota = carModel == "toyota";
+    isSubaru = carMake == "subaru";
+    isToyota = carMake == "toyota";
     isVolt = carFingerprint == "CHEVROLET_VOLT";
-    forcingAutoTune = params.getBool("AdvancedLateralTune") && params.getBool("ForceAutoTune");
-    steerFrictionStock = CP.getLateralTuning().getTorque().getFriction();
-    steerKPStock = CP.getLateralTuning().getTorque().getKp();
-    steerLatAccelStock = CP.getLateralTuning().getTorque().getLatAccelFactor();
+    frictionStock = CP.getLateralTuning().getTorque().getFriction();
+    kpStock = CP.getLateralTuning().getTorque().getKp();
+    latAccelStock = CP.getLateralTuning().getTorque().getLatAccelFactor();
     steerRatioStock = CP.getSteerRatio();
 
     float currentFrictionStock = params.getFloat("SteerFrictionStock");
     float currentKPStock = params.getFloat("SteerKPStock");
     float currentLatAccelStock = params.getFloat("SteerLatAccelStock");
-    float currentRatioStock = params.getFloat("SteerRatioStock");
+    float currentSteerRatioStock = params.getFloat("SteerRatioStock");
 
-    if (currentFrictionStock != steerFrictionStock && steerFrictionStock != 0) {
-      if (params.getFloat("SteerFriction") == currentFrictionStock) {
-        params.putFloatNonBlocking("SteerFriction", steerFrictionStock);
+    if (currentFrictionStock != frictionStock && frictionStock != 0) {
+      if (params.getFloat("SteerFriction") == currentFrictionStock || currentFrictionStock == 0) {
+        params.putFloat("SteerFriction", frictionStock);
       }
-      params.putFloatNonBlocking("SteerFrictionStock", steerFrictionStock);
+      params.putFloat("SteerFrictionStock", frictionStock);
     }
 
-    if (currentKPStock != steerKPStock && currentKPStock != 0) {
-      if (params.getFloat("SteerKP") == currentKPStock) {
-        params.putFloatNonBlocking("SteerKP", steerKPStock);
+    if (currentKPStock != kpStock && kpStock != 0) {
+      if (params.getFloat("SteerKP") == currentKPStock || currentKPStock == 0) {
+        params.putFloat("SteerKP", kpStock);
       }
-      params.putFloatNonBlocking("SteerKPStock", steerKPStock);
+      params.putFloat("SteerKPStock", kpStock);
     }
 
-    if (currentLatAccelStock != steerLatAccelStock && steerLatAccelStock != 0) {
-      if (params.getFloat("SteerLatAccel") == steerLatAccelStock) {
-        params.putFloatNonBlocking("SteerLatAccel", steerLatAccelStock);
+    if (currentLatAccelStock != latAccelStock && latAccelStock != 0) {
+      if (params.getFloat("SteerLatAccel") == currentLatAccelStock || currentLatAccelStock == 0) {
+        params.putFloat("SteerLatAccel", latAccelStock);
       }
-      params.putFloatNonBlocking("SteerLatAccelStock", steerLatAccelStock);
+      params.putFloat("SteerLatAccelStock", latAccelStock);
     }
 
-    if (currentRatioStock != steerRatioStock && steerRatioStock != 0) {
-      if (params.getFloat("SteerRatio") == steerRatioStock) {
-        params.putFloatNonBlocking("SteerRatio", steerRatioStock);
+    if (currentSteerRatioStock != steerRatioStock && steerRatioStock != 0) {
+      if (params.getFloat("SteerRatio") == currentSteerRatioStock || currentSteerRatioStock == 0) {
+        params.putFloat("SteerRatio", steerRatioStock);
       }
-      params.putFloatNonBlocking("SteerRatioStock", steerRatioStock);
+      params.putFloat("SteerRatioStock", steerRatioStock);
     }
-
-    uiState()->scene.has_auto_tune = hasAutoTune || forcingAutoTune;
 
     if (params.checkKey("LiveTorqueParameters")) {
       std::string torqueParams = params.get("LiveTorqueParameters");
@@ -263,47 +274,15 @@ void FrogPilotSettingsWindow::updateCarVariables() {
     } else {
       liveValid = false;
     }
-
-    emit updateCarToggles();
-  }).detach();
-}
-
-void FrogPilotSettingsWindow::addPanelControl(FrogPilotListWidget *list, QString &title, QString &desc, std::vector<QString> &button_labels, QString &icon, std::vector<QWidget*> &panels, QString &currentPanel) {
-  std::vector<QWidget*> panelContainers;
-  panelContainers.reserve(panels.size());
-
-  for (QWidget *panel : panels) {
-    QWidget *panelContainer = new QWidget(this);
-    QVBoxLayout *panelLayout = new QVBoxLayout(panelContainer);
-    panelLayout->setContentsMargins(50, 25, 50, 25);
-    panelLayout->addWidget(panel);
-    panelContainers.push_back(panelContainer);
   }
 
-  FrogPilotButtonsControl *button;
-  if (currentPanel == tr("Driving Controls")) {
-    drivingButton = new FrogPilotButtonsControl(title, desc, button_labels, false, true, icon);
-    button = drivingButton;
-  } else if (currentPanel == tr("Navigation")) {
-    navigationButton = new FrogPilotButtonsControl(title, desc, button_labels, false, true, icon);
-    button = navigationButton;
-  } else if (currentPanel == tr("System Management")) {
-    systemButton = new FrogPilotButtonsControl(title, desc, button_labels, false, true, icon);
-    button = systemButton;
-  } else {
-    button = new FrogPilotButtonsControl(title, desc, button_labels, false, true, icon);
-  }
+  drivingPanelButtons->setVisible(hasOpenpilotLongitudinal || tuningLevel >= frogpilotToggleLevels.value("Model").toDouble());
+  drivingPanelButtons->setVisibleButton(0, tuningLevel >= frogpilotToggleLevels.value("Model").toDouble());
+  drivingPanelButtons->setVisibleButton(1, hasOpenpilotLongitudinal);
 
-  QObject::connect(button, &FrogPilotButtonsControl::buttonClicked, [this, panelContainers](int buttonId) {
-    if (buttonId < panelContainers.size()) {
-      QWidget *selectedPanel = panelContainers[buttonId];
-      if (mainLayout->indexOf(selectedPanel) == -1) {
-        mainLayout->addWidget(selectedPanel);
-      }
-      mainLayout->setCurrentWidget(selectedPanel);
-    }
-    openPanel();
-  });
+  navigationPanelButtons->setVisibleButton(1, !uiState()->hasPrime());
 
-  list->addItem(button);
+  systemPanelButtons->setVisibleButton(1, tuningLevel >= frogpilotToggleLevels.value("DeviceManagement").toDouble() || tuningLevel >= frogpilotToggleLevels.value("ScreenManagement").toDouble());
+
+  update();
 }
