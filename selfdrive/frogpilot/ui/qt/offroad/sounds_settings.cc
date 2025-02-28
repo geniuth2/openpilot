@@ -38,6 +38,7 @@ FrogPilotSoundsPanel::FrogPilotSoundsPanel(FrogPilotSettingsWindow *parent) : Fr
     {"RefuseVolume", tr("Refuse Volume"), tr("Related alerts:\n\nopenpilot Unavailable"), ""},
     {"WarningSoftVolume", tr("Warning Soft Volume"), tr("Related alerts:\n\nBRAKE!, Risk of Collision\nTAKE CONTROL IMMEDIATELY"), ""},
     {"WarningImmediateVolume", tr("Warning Immediate Volume"), tr("Related alerts:\n\nDISENGAGE IMMEDIATELY, Driver Distracted\nDISENGAGE IMMEDIATELY, Driver Unresponsive"), ""},
+    {"SlowingDownVolume", tr("Slowing Down Volume"), tr("Related alerts:\n\n속도를 줄입니다., Slowing down"), ""},
 
     {"CustomAlerts", tr("Custom Alerts"), tr("Custom alerts for openpilot events."), "../frogpilot/assets/toggle_icons/icon_green_light.png"},
     {"GoatScream", tr("Goat Scream Steering Saturated Alert"), tr("Enables the famed 'Goat Scream' that has brought both joy and anger to FrogPilot users all around the world!"), ""},

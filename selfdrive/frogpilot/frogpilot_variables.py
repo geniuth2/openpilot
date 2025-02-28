@@ -343,6 +343,7 @@ frogpilot_default_params: list[tuple[str, bool | bytes | int | float | str]] = [
   ("VisionTurnControl", 1),
   ("VoltSNG", 0),
   ("WarningImmediateVolume", 101),
+  ("SlowingDownVolume", 101),
   ("WarningSoftVolume", 101),
   ("WD40Drives", 0),
   ("WD40Score", 0),

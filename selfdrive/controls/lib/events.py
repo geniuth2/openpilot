@@ -527,6 +527,14 @@ EVENTS: dict[int, dict[str, Alert | AlertCallbackType]] = {
       Priority.HIGH, VisualAlert.steerRequired, AudibleAlert.warningImmediate, .1),
   },
 
+  EventName.slowingDownSpeedSound: {
+    ET.PERMANENT: Alert(
+      "속도를 줄입니다.",
+      "Slowing Down",
+      AlertStatus.normal, AlertSize.small,
+      Priority.HIGH, VisualAlert.steerRequired, AudibleAlert.speedDown, 2.),
+  },
+
   EventName.preDriverUnresponsive: {
     ET.PERMANENT: Alert(
       "Touch Steering Wheel: No Face Detected",
@@ -1241,14 +1249,14 @@ EVENTS: dict[int, dict[str, Alert | AlertCallbackType]] = {
       AlertStatus.frogpilot, AlertSize.small,
       Priority.LOW, VisualAlert.none, AudibleAlert.mail, 3.),
   },
-  EventName.slowingDownSpeedSound: {
-    ET.PERMANENT: Alert(
-      "Slowing down",
-      "",
-      AlertStatus.normal, AlertSize.small,
-      Priority.LOW, VisualAlert.none, AudibleAlert.speedDown, 2.),
-
-  },
+  # EventName.slowingDownSpeedSound: {
+  #   ET.PERMANENT: Alert(
+  #     "Slowing down",
+  #     "",
+  #     AlertStatus.normal, AlertSize.small,
+  #     Priority.LOW, VisualAlert.none, AudibleAlert.speedDown, 2.),
+  #
+  # },
 }
 
 
